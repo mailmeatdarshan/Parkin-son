@@ -6,21 +6,32 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true, // Query fast karne ke liye indexing
+      index: true,
+    },
+    daySessionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DaySession",
+      index: true,
     },
     title: {
       type: String,
-      required: [true, "Task title is required"],
       trim: true,
+    },
+    encryptedDescription: {
+      type: String,
+    },
+    encryptedAESKey: {
+      type: String,
+      default: "e2e_v2",
+    },
+    status: {
+      type: Boolean,
+      default: false,
     },
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
       default: "medium",
-    },
-    isCompleted: {
-      type: Boolean,
-      default: false,
     },
     deadline: {
       type: Date,

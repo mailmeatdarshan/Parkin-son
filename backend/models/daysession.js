@@ -8,20 +8,46 @@ const daySessionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    title: {
+      type: String,
+      default: "Day Focus",
+      trim: true,
+    },
     date: {
       type: Date,
-      required: true, // Normalized date e.g. YYYY-MM-DD 00:00:00
+      required: true,
     },
-    totalFocusMinutes: {
+    deadline: {
+      type: Date,
+    },
+    totalDaytime: {
       type: Number,
       default: 0,
-      min: 0,
+    },
+    stopwatchTime: {
+      type: Number,
+      default: 0,
+    },
+    totalSessions: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ["active", "completed", "pending"],
+      default: "active",
     },
   },
   { timestamps: true }
 );
 
-// Har user ka ek din me sirf EK record hona chahiye
+daySessionSchema.pre("save", function (next) {
+  if (this.date) {
+    this.date.setHours(0, 0, 0, 0);
+  }
+  next();
+});
+
 daySessionSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model("DaySession", daySessionSchema);
