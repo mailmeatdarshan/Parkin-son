@@ -3,7 +3,12 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { connectDb } = require("./database/db");
+
+
 const authRoutes = require("./routes/auth");
+const taskRoutes = require("./routes/task");               
+const sessionRoutes = require("./routes/sessions");        
+const leaderboardRoutes = require("./routes/leaderboard.routes");
 
 const app = express();
 
@@ -24,6 +29,11 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/task", taskRoutes);               
+app.use("/api/session", sessionRoutes);         
+app.use("/api/leaderboard", leaderboardRoutes); 
+
+
 
 //Start Server
 const PORT = process.env.PORT || 5000;
