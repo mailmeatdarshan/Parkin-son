@@ -10,13 +10,19 @@ router.post("/addtask", async (req, res) => {
   try {
     const { title, encryptedDescription, encryptedAESKey, daySessionId, priority, deadline } = req.body;
 
+    if (!daySessionId) {
+      return res.status(400).json({ success: false, message: "daySessionId is required to add a task" });
+    }
+
+    const taskText = title || encryptedDescription || "New Task";
+
     const task = await Task.create({
       userId: req.user._id,
       daySessionId,
-      title: title || "New Task",
-      encryptedDescription,
-      encryptedAESKey,
-      priority,
+      title: taskText,
+      encryptedDescription: encryptedDescription || taskText,
+      encryptedAESKey: encryptedAESKey || "e2e_v2",
+      priority: priority || "medium",
       deadline,
     });
 

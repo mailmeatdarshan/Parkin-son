@@ -20,6 +20,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     .json({
       success: true,
       message: "Authentication successful",
+      token,
       user: {
         id: user._id,
         name: user.name,

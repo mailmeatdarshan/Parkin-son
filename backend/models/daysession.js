@@ -41,11 +41,10 @@ const daySessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-daySessionSchema.pre("save", function (next) {
+daySessionSchema.pre("save", function () {
   if (this.date) {
     this.date.setHours(0, 0, 0, 0);
   }
-  next();
 });
 
 daySessionSchema.index({ userId: 1, date: 1 }, { unique: true });

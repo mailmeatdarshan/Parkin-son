@@ -38,6 +38,9 @@ export const AuthProvider = ({ children }) => {
     if (!res.ok) {
       throw new Error(data.message || "Login failed");
     }
+    if (data.token) {
+      localStorage.setItem("auth_token", data.token);
+    }
     setUser(data.user);
     return data;
   };
@@ -52,6 +55,9 @@ export const AuthProvider = ({ children }) => {
     if (!res.ok) {
       throw new Error(data.message || "Signup failed");
     }
+    if (data.token) {
+      localStorage.setItem("auth_token", data.token);
+    }
     setUser(data.user);
     return data;
   };
@@ -61,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await apiFetch("/api/auth/logout", { method: "POST" });
     } finally {
+      localStorage.removeItem("auth_token");
       setUser(null);
     }
   };
