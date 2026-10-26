@@ -36,6 +36,12 @@ router.post("/day/add", async (req, res) => {
 
     res.status(201).json(day);
   } catch (err) {
+    if (err.code === 11000) {
+      const targetDate = req.body.date ? new Date(req.body.date) : new Date();
+      targetDate.setHours(0, 0, 0, 0);
+      const existing = await DaySession.findOne({ userId: req.user._id, date: targetDate });
+      if (existing) return res.status(200).json(existing);
+    }
     res.status(500).json({ success: false, message: err.message });
   }
 });

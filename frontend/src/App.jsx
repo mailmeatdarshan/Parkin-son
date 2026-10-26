@@ -5,21 +5,22 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+import WorkspacePage from "./pages/WorkspacePage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/workspace" element={<WorkspacePage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/workspace" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
