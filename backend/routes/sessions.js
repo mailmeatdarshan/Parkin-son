@@ -70,28 +70,121 @@ router.patch("/day/:id", async (req, res) => {
   }
 });
 
-//STOPWATCH SAVE TIME
-router.post("/stopwatch/stop", async (req, res) => {
+// 4. STOPWATCH START SESSION
+router.post("/stopwatch/start", async (req, res) => {
   try {
-    const { durationSeconds } = req.body;
-    const addedTime = durationSeconds || 0;
-
+    const { taskName } = req.body;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const day = await DaySession.findOneAndUpdate(
-      { userId: req.user._id, date: today },
-      { $inc: { totalDaytime: addedTime, stopwatchTime: addedTime } },
-      { new: true, upsert: true }
-    );
+    let daySession = await DaySession.findOne({ userId: req.user._id, date: today });
+    if (!daySession) {
+      daySession = await DaySession.create({
+        userId: req.user._id,
+        title: "Today's Focus",
+        date: today,
+      });
+    }
 
-    res.status(200).json({ success: true, totalDaytime: day.totalDaytime });
+    // Clean up any stale running sessions
+    const runningSessions = await StudySession.find({ userId: req.user._id, status: "running" });
+    for (let r of runningSessions) {
+      const elapsed = Math.floor((new Date() - r.startTime) / 1000);
+      if (elapsed > 0) {
+        await DaySession.updateOne(
+          { _id: r.daySessionId },
+          { $inc: { totalDaytime: elapsed, stopwatchTime: elapsed } }
+        );
+      }
+      await StudySession.deleteOne({ _id: r._id });
+    }
+
+    const session = await StudySession.create({
+      daySessionId: daySession._id,
+      userId: req.user._id,
+      taskName: taskName || "Focus Session",
+      startTime: new Date(),
+      status: "running",
+      source: "stopwatch",
+    });
+
+    res.status(201).json({ success: true, sessionId: session._id });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-//STOPWATCH GET TODAY STATS
+// 5. STOPWATCH STOP / PAUSE / RESET / SAVE
+router.post("/stopwatch/stop", async (req, res) => {
+  try {
+    const { sessionId, isFinalSave, isReset } = req.body;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let daySession = await DaySession.findOne({ userId: req.user._id, date: today });
+    if (!daySession) {
+      daySession = await DaySession.create({
+        userId: req.user._id,
+        title: "Today's Focus",
+        date: today,
+      });
+    }
+
+    if (isReset) {
+      if (sessionId) await StudySession.deleteOne({ _id: sessionId, userId: req.user._id });
+      await StudySession.deleteMany({ userId: req.user._id, status: "paused", source: "stopwatch" });
+      return res.status(200).json({ success: true, message: "Timer reset successfully" });
+    }
+
+    let currentDuration = 0;
+    if (sessionId) {
+      const session = await StudySession.findOne({ _id: sessionId, userId: req.user._id, status: "running" });
+      if (session) {
+        currentDuration = Math.max(0, Math.floor((new Date() - session.startTime) / 1000));
+        if (!isFinalSave) {
+          // Pause logic: accumulate duration and mark paused
+          session.duration = (session.duration || 0) + currentDuration;
+          session.status = "paused";
+          await session.save();
+          return res.status(200).json({ success: true, duration: currentDuration });
+        } else {
+          await StudySession.deleteOne({ _id: session._id });
+        }
+      }
+    }
+
+    let totalDurationToSave = currentDuration;
+    if (isFinalSave) {
+      const pausedSessions = await StudySession.find({ userId: req.user._id, status: "paused", source: "stopwatch" });
+      for (let p of pausedSessions) {
+        totalDurationToSave += (p.duration || 0);
+      }
+
+      if (pausedSessions.length > 0) {
+        await StudySession.deleteMany({ userId: req.user._id, status: "paused", source: "stopwatch" });
+      }
+
+      if (totalDurationToSave > 0) {
+        await DaySession.updateOne(
+          { _id: daySession._id },
+          {
+            $inc: {
+              totalDaytime: totalDurationToSave,
+              stopwatchTime: totalDurationToSave,
+              totalSessions: 1,
+            },
+          }
+        );
+      }
+    }
+
+    res.status(200).json({ success: true, duration: totalDurationToSave });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 6. STOPWATCH GET TODAY STATS
 router.get("/stopwatch/today-stats", async (req, res) => {
   try {
     const today = new Date();
@@ -99,7 +192,9 @@ router.get("/stopwatch/today-stats", async (req, res) => {
 
     const day = await DaySession.findOne({ userId: req.user._id, date: today });
     res.status(200).json({
-      todayTime: day ? day.totalDaytime || day.stopwatchTime || 0 : 0,
+      success: true,
+      totalDaytime: day ? day.stopwatchTime || day.totalDaytime || 0 : 0,
+      totalSessions: day ? day.totalSessions || 0 : 0,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
