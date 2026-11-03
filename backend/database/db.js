@@ -1,19 +1,35 @@
 const mongoose = require("mongoose");
+const logger = require("../utils/logger");
 
-async function connectDb() {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+async function connectDb(){
+   try{
+    await mongoose.connect(process.env.MONGODB_URI, {
       maxPoolSize: 50,
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error("MongoDB Connection Error:", error.message);
+    logger.info("DB connected");
+  } catch(err){
+    logger.error("DB connection failed", err);
     process.exit(1);
   }
 }
 
-mongoose.connection.on("disconnected", () => {
-  console.warn("Mongoose connection disconnected!");
+mongoose.plugin((schema) => {
+    schema.pre(/^find|update|save|deleteOne|deleteMany|aggregate/, function () {
+        this._startTime = Date.now();
+    });
+    schema.post(/^find|update|save|deleteOne|deleteMany|aggregate/, function (res, next) {
+        if (this._startTime) {
+            const duration = Date.now() - this._startTime;
+            if (duration > 300) {
+                logger.warn(`[Slow Query] ${this?.model?.modelName || 'Unknown'} operation took ${duration}ms`);
+            }
+        }
+        if (typeof next === 'function') next();
+    });
 });
 
-module.exports = { connectDb };
+mongoose.connection.on('disconnected', () => {
+    logger.warn('Mongoose connection disconnected');
+});
+
+module.exports = { mongoose, connectDb };
