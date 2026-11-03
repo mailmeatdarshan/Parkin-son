@@ -1,87 +1,102 @@
+// here we are getting tasks of user of per day...
+
 const express = require("express");
+const taskmodel = require("../models/tasks");
 const router = express.Router();
-const Task = require("../models/tasks");
-const authMiddleware = require("../middleware/authMiddleware");
 
-router.use(authMiddleware);
+//  for adding user task in db ------------------------------------------------------------------------
 
-//ADD TASK
-router.post("/addtask", async (req, res) => {
+router.post("/addtask", async function (req, res) {
   try {
-    const { title, encryptedDescription, encryptedAESKey, daySessionId, priority, deadline } = req.body;
+    const userId = req.user.id;
+    const { encryptedDescription, encryptedAESKey, daySessionId } = req.body;
 
-    if (!daySessionId) {
-      return res.status(400).json({ success: false, message: "daySessionId is required to add a task" });
-    }
-
-    const taskText = title || encryptedDescription || "New Task";
-
-    const task = await Task.create({
-      userId: req.user._id,
+    const task = await taskmodel.create({
+      encryptedDescription,
+      encryptedAESKey,
       daySessionId,
-      title: taskText,
-      encryptedDescription: encryptedDescription || taskText,
-      encryptedAESKey: encryptedAESKey || "e2e_v2",
-      priority: priority || "medium",
-      deadline,
+      userId,
     });
 
-    res.status(201).json({ success: true, message: "Task created", task });
+    res.status(201).json({
+      message: "Task Cretaed",
+      task,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      message: "Error creating task",
+      error: err.message,
+    });
   }
 });
 
-//GET TASKS OF A DAY
-router.get("/gettask/:daySessionId", async (req, res) => {
+//  to get user task on the basis of user id and daysession ------------------------------------------------------------------------
+
+router.get("/gettask/:daySessionId", async function (req, res) {
   try {
+    const userId = req.user.id;
     const { daySessionId } = req.params;
-    const tasks = await Task.find({
-      userId: req.user._id,
-      daySessionId,
+
+    const task = await taskmodel.find({
+      daySessionId: req.params.daySessionId,
+      userId,
     }).sort({ createdAt: -1 });
+
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({
+      message: "Error fetching task",
+    });
+  }
+});
+
+//  to patch the existing task on the basis of taskid (every task has unique id) ------------------------------------------------------------------------
+
+router.patch("/patchtask/:taskId", async function (req, res) {
+  try {
+    const userId = req.user.id;
+    const { taskId } = req.params;
+    const {status} = req.body;
+    const tasks = await taskmodel.findOneAndUpdate(
+      { _id: taskId, userId},
+      { $set: { status } },
+      { new: true },
+    );
 
     res.status(200).json(tasks);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      message: "Somethng went wrong",
+    });
   }
 });
 
-//TOGGLE STATUS
-router.patch("/patchtask/:taskId", async (req, res) => {
+//  to delete the exiting task on the basis of taskid
+// ------------------------------------------------------------------------
+
+router.delete("/deletetask/:taskId", async function (req, res) {
   try {
+    const userId = req.user.id;
     const { taskId } = req.params;
-    const { status, title } = req.body;
 
-    const updateData = {};
-    if (status !== undefined) updateData.status = status;
-    if (title) updateData.title = title;
+    const task = await taskmodel.findOneAndDelete({
+      _id: taskId,
+      userId,
+    });
 
-    const task = await Task.findOneAndUpdate(
-      { _id: taskId, userId: req.user._id },
-      updateData,
-      { new: true }
-    );
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
 
-    if (!task) return res.status(404).json({ success: false, message: "Task not found" });
-
-    res.status(200).json({ success: true, task });
+    res.status(200).json({
+      message: "Task Deleted Successfully",
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-//DELETE TASK
-router.delete("/deletetask/:taskId", async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    const task = await Task.findOneAndDelete({ _id: taskId, userId: req.user._id });
-
-    if (!task) return res.status(404).json({ success: false, message: "Task not found" });
-
-    res.status(200).json({ success: true, message: "Task deleted" });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      message: "Something went wrong",
+    });
   }
 });
 
