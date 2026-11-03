@@ -1,44 +1,79 @@
-const mongoose = require("mongoose");
+const { mongoose } = require("../database/db");
+const { Schema } = mongoose;
 
-const sessionSchema = new mongoose.Schema(
+// Timer system for calculating in one day how much hour you spent in one daysession...
+
+const sessionSchema = new Schema(
   {
     daySessionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "DaySession",
-    },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: Schema.Types.ObjectId,
+      ref: "daysessioncreditanils",
       required: true,
-      index: true,
     },
+
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "userCredential",
+      required: true,
+    },
+
     taskName: {
       type: String,
-      default: "Focus Session",
+      default: "Untitled Task",
     },
+
     startTime: {
       type: Date,
       required: true,
-      default: Date.now,
     },
+
     endTime: {
       type: Date,
     },
+
     duration: {
-      type: Number, // in seconds
+      type: Number,
       default: 0,
     },
+
     status: {
       type: String,
       enum: ["running", "paused", "completed"],
       default: "running",
     },
+
     source: {
       type: String,
-      default: "stopwatch", // "stopwatch" or "workspace"
+      default: "workspace",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model("StudySession", sessionSchema);
+// ================= INDEXES =================
+
+// Find all sessions of a user
+sessionSchema.index({ userId: 1 });
+
+// Find all sessions of a day
+sessionSchema.index({ daySessionId: 1 });
+
+// Find running session of a user
+sessionSchema.index({ userId: 1, status: 1 });
+
+// Find sessions of a user for a particular day
+sessionSchema.index({ userId: 1, daySessionId: 1 });
+
+// Best index for Pause / Resume / Complete APIs
+sessionSchema.index({ userId: 1, daySessionId: 1, status: 1 });
+
+// Sort sessions by start time
+sessionSchema.index({ daySessionId: 1, startTime: 1 });
+
+// ================= MIDDLEWARE =================
+
+// Removed pre("save") hook because it overwrites manually accumulated duration
+
+const sessionmodel = mongoose.model("sessioncrediantials", sessionSchema);
+
+module.exports = sessionmodel;

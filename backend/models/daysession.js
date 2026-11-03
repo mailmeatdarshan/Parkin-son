@@ -1,52 +1,49 @@
-const mongoose = require("mongoose");
+const { mongoose } = require("../database/db");
+const { Schema } = mongoose;
 
-const daySessionSchema = new mongoose.Schema(
+const daysessionSchema = new Schema(
   {
+    title: { type: String, required: true, trim: true },
+    deadline: { type: Date },
+    date: { type: Date, required: true },
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: Schema.Types.ObjectId,
+      ref: "userCredential",
       required: true,
       index: true,
     },
-    title: {
-      type: String,
-      default: "Day Focus",
-      trim: true,
-    },
-    date: {
-      type: Date,
-      required: true,
-    },
-    deadline: {
-      type: Date,
-    },
-    totalDaytime: {
-      type: Number,
-      default: 0,
-    },
-    stopwatchTime: {
-      type: Number,
-      default: 0,
-    },
-    totalSessions: {
-      type: Number,
-      default: 0,
-    },
+
+    totalDaytime: { type: Number, default: 0 },
+    totalSessions: { type: Number, default: 0 },
+    stopwatchTime: { type: Number, default: 0 }, // 🔥 NEW: Stopwatch backup time
+
     status: {
       type: String,
       enum: ["active", "completed", "pending"],
       default: "active",
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
-daySessionSchema.pre("save", function () {
+daysessionSchema.pre("save", function () {
   if (this.date) {
     this.date.setHours(0, 0, 0, 0);
   }
 });
 
-daySessionSchema.index({ userId: 1, date: 1 }, { unique: true });
+daysessionSchema.pre("findOneAndUpdate", function () {
+  const update = this.getUpdate();
+  if (update && update.date) {
+    update.date.setHours(0, 0, 0, 0);
+  }
+});
 
-module.exports = mongoose.model("DaySession", daySessionSchema);
+// Restore unique rule as requested by user (1 box per day)
+daysessionSchema.index({ userId: 1, date: 1 }, { unique: true });
+
+const dailysessionmodel = mongoose.model(
+  "daysessioncreditanils",
+  daysessionSchema,
+);
+module.exports = dailysessionmodel;
