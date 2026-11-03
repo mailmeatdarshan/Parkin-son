@@ -1,4 +1,3 @@
-import React from "react";
 import Sidebar from "../components/common/Sidebar";
 import Workspace from "../components/workspace/Workspace";
 

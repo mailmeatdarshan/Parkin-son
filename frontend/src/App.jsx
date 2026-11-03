@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import WorkspacePage from "./pages/WorkspacePage";
 import StopwatchPage from "./pages/StopwatchPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/stopwatch" element={<StopwatchPage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/workspace" replace />} />
