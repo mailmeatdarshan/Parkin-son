@@ -1,43 +1,60 @@
-const mongoose = require("mongoose");
+const { mongoose } = require("../database/db");
+const { Schema } = mongoose;
 
-const taskSchema = new mongoose.Schema(
+// Inside daysession we have task like for monday we have task1,task2,task3...etc
+
+const taskSchema = new Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
     daySessionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "DaySession",
-      index: true,
+      type: Schema.Types.ObjectId,
+      ref: "daysessioncreditanils",
+      required: true,
     },
-    title: {
-      type: String,
-      trim: true,
-    },
+
     encryptedDescription: {
       type: String,
+      required: true,
     },
+
     encryptedAESKey: {
       type: String,
-      default: "e2e_v2",
+      required: true,
     },
+
     status: {
       type: Boolean,
-      default: false,
+      default: false, // false = pending, true = completed
     },
-    priority: {
-      type: String,
-      enum: ["low", "medium", "high"],
-      default: "medium",
-    },
-    deadline: {
-      type: Date,
+
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "userCredential",
+      required: true,
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Task", taskSchema);
+// ================= INDEXES =================
+
+// Find all tasks of a day
+taskSchema.index({ daySessionId: 1 });
+
+// Find all tasks of a user
+taskSchema.index({ userId: 1 });
+
+// Find completed/pending tasks of a user
+taskSchema.index({ userId: 1, status: 1 });
+
+// Find tasks of a particular day
+taskSchema.index({ daySessionId: 1, status: 1 });
+
+// Most common query: tasks of a user for a particular day
+taskSchema.index({ userId: 1, daySessionId: 1 });
+
+// Most optimized for filtering tasks by user + day + status
+taskSchema.index({ userId: 1, daySessionId: 1, status: 1 });
+
+const taskmodel = mongoose.model("taskcredential", taskSchema);
+
+module.exports = taskmodel;

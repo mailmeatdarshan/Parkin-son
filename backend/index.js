@@ -8,12 +8,19 @@ const { connectDb } = require("./database/db");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
+const performanceMiddleware = require("./middleware/performance");
+const logger = require("./utils/logger");
+const authMiddleware = require("./middleware/authMiddleware");
+
 const authRoutes = require("./routes/auth");
 const taskRoutes = require("./routes/task");               
 const sessionRoutes = require("./routes/sessions");        
+const calendarRoutes = require("./routes/calendar.route");
+const dashboardRoutes = require("./routes/dashboards");
 const leaderboardRoutes = require("./routes/leaderboard.routes");
 
 const app = express();
+app.use(performanceMiddleware);
 
 // Security Headers (Helmet)
 app.use(
@@ -64,9 +71,11 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/task", taskRoutes);               
-app.use("/api/session", sessionRoutes);         
-app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/task", authMiddleware, taskRoutes);               
+app.use("/api/session", authMiddleware, sessionRoutes);         
+app.use("/api/calendar", authMiddleware, calendarRoutes);
+app.use("/api/dashboard", authMiddleware, dashboardRoutes);
+app.use("/api/leaderboard", authMiddleware, leaderboardRoutes);
 
 // Centralized error handling
 app.use((err, req, res, next) => {

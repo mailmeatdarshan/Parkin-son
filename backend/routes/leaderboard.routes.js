@@ -1,67 +1,172 @@
 const express = require("express");
 const router = express.Router();
+const { getCache, setCache } = require("../utils/cache");
+
 const User = require("../models/users");
-const DaySession = require("../models/daysession");
+const dailysessionmodel = require("../models/daysession");
+const taskmodel = require("../models/tasks");
 
-// GET LEADERBOARD (AGGREGATED STATS)
+// GET /api/leaderboard
 router.get("/", async (req, res) => {
-  try {
-    const users = await User.find({}).select("name avatar badges createdAt streak").lean();
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 0;
+        const cacheKey = "leaderboard_full";
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        let finalData = getCache(cacheKey);
 
-    // 1. Today's sessions
-    const todaySessions = await DaySession.find({ date: today }).lean();
-    const todayXpMap = {};
-    todaySessions.forEach((s) => {
-      todayXpMap[s.userId.toString()] = (todayXpMap[s.userId.toString()] || 0) + (s.totalDaytime || s.stopwatchTime || 0);
-    });
+        if (!finalData) {
+            // Fetch only required fields to save RAM, excluding heavy crypto fields
+            const users = await User.find({}).select("name imageUrl avatar picture badges createdAt").lean();
+        
+        // 🔥 FIX 1: IST ke hisaab se exact today ki date nikalenge
+        const now = new Date();
+        now.setHours(now.getHours() + 5);
+        now.setMinutes(now.getMinutes() + 30);
+        const today = new Date(now.toISOString().split('T')[0] + "T00:00:00.000Z");
 
-    // 2. All-time MongoDB Aggregation
-    const allTimeStats = await DaySession.aggregate([
-      {
-        $group: {
-          _id: "$userId",
-          totalFocusSeconds: { $sum: "$totalDaytime" },
-          totalSessions: { $sum: "$totalSessions" },
-        },
-      },
-    ]);
+        const userIds = users.map(u => u._id);
+        const userIdsStr = users.map(u => u._id.toString());
 
-    const allTimeMap = {};
-    const sessionsMap = {};
-    allTimeStats.forEach((stat) => {
-      allTimeMap[stat._id.toString()] = stat.totalFocusSeconds || 0;
-      sessionsMap[stat._id.toString()] = stat.totalSessions || 0;
-    });
+        // 1. Bulk Fetch Today's Sessions (Projected)
+        const todaySessions = await dailysessionmodel.find({ 
+            userId: { $in: userIds }, 
+            date: today 
+        }).select("userId totalDaytime").lean();
+        
+        const xpByUserId = {};
+        todaySessions.forEach(s => {
+            const uid = s.userId.toString();
+            xpByUserId[uid] = (xpByUserId[uid] || 0) + (s.totalDaytime || 0);
+        });
 
-    // 3. Map user profiles with stats
-    const leaderboard = users.map((u) => {
-      const uId = u._id.toString();
-      const todaySec = todayXpMap[uId] || 0;
-      const allTimeSec = Math.max(allTimeMap[uId] || 0, todaySec);
+        // 2. Bulk Fetch Tasks to get active daySessionIds
+        const tasks = await taskmodel.find({ userId: { $in: userIds } }, 'daySessionId userId').lean();
+        const tasksSessionIdsByUserId = {};
+        tasks.forEach(t => {
+            const uid = t.userId.toString();
+            if(!tasksSessionIdsByUserId[uid]) tasksSessionIdsByUserId[uid] = new Set();
+            if(t.daySessionId) tasksSessionIdsByUserId[uid].add(t.daySessionId.toString());
+        });
 
-      return {
-        id: u._id,
-        name: u.name,
-        avatar: u.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(u.name)}`,
-        xp: allTimeSec, // Default XP (seconds)
-        todayXp: todaySec,
-        allTimeXp: allTimeSec,
-        totalSessions: sessionsMap[uId] || 0,
-        streak: u.streak || (allTimeSec > 0 ? 1 : 0),
-        badges: u.badges && u.badges.length > 0 ? u.badges : ["Novice"],
-      };
-    });
+        // 3. Bulk Fetch ALL Study Days for Streak Calculation (Projected)
+        const allStudyDays = await dailysessionmodel.find({ userId: { $in: userIds } })
+            .select("userId date totalDaytime")
+            .sort({ date: 1 })
+            .lean();
+        const studyDaysByUserId = {};
+        
+        allStudyDays.forEach(s => {
+            const uid = s.userId.toString();
+            if (!studyDaysByUserId[uid]) studyDaysByUserId[uid] = [];
+            
+            const hasTask = tasksSessionIdsByUserId[uid] && tasksSessionIdsByUserId[uid].has(s._id.toString());
+            if ((s.totalDaytime > 0) || hasTask) {
+                studyDaysByUserId[uid].push(s);
+            }
+        });
 
-    // Sort descending by allTimeXp
-    leaderboard.sort((a, b) => b.allTimeXp - a.allTimeXp);
+        // 4. Calculate everything in memory synchronously
+        const leaderboardData = users.map(user => {
+            const uid = user._id.toString();
+            const xp = xpByUserId[uid] || 0;
+            const studyDays = studyDaysByUserId[uid] || [];
+            
+            let longestStreak = 0;
+            let currentStreak = 0;
 
-    res.status(200).json(leaderboard);
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+            if (studyDays.length > 0) {
+              let streak = 1;
+
+              // A. Calculate Longest Streak
+              for (let i = 0; i < studyDays.length; i++) {
+                if (i > 0) {
+                  const prev = new Date(studyDays[i - 1].date);
+                  const curr = new Date(studyDays[i].date);
+                  const diffDays = Math.floor((curr - prev) / (1000 * 60 * 60 * 24));
+
+                  if (diffDays === 1) {
+                    streak++;
+                  } else {
+                    longestStreak = Math.max(longestStreak, streak);
+                    streak = 1;
+                  }
+                }
+              }
+              longestStreak = Math.max(longestStreak, streak);
+
+              // B. Calculate Current Streak
+              currentStreak = 1;
+              for (let i = studyDays.length - 1; i > 0; i--) {
+                const curr = new Date(studyDays[i].date);
+                const prev = new Date(studyDays[i - 1].date);
+                const diffDays = Math.floor((curr - prev) / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                  currentStreak++;
+                } else {
+                  break;
+                }
+              }
+
+              const lastStudyDate = new Date(studyDays[studyDays.length - 1].date);
+              lastStudyDate.setHours(0, 0, 0, 0);
+              
+              const diffFromToday = Math.floor((today - lastStudyDate) / (1000 * 60 * 60 * 24));
+              if (diffFromToday > 1) {
+                currentStreak = 0;
+              }
+            }
+
+            return {
+                id: user._id,
+                name: user.name,
+                avatar: user.imageUrl || user.avatar || user.picture || null,
+                xp: xp,
+                currentStreak: currentStreak,
+                longestStreak: longestStreak, 
+                badges: user.badges || [],
+                createdAt: user.createdAt ? new Date(user.createdAt).getTime() : user._id.getTimestamp().getTime()
+            };
+        });
+
+        // ==========================================
+        // 3. 🔥 ULTIMATE TIE-BREAKER SORTING LOGIC 🔥
+        // ==========================================
+        leaderboardData.sort((a, b) => {
+            if (b.xp !== a.xp) return b.xp - a.xp; // Rule 1: XP
+            if (b.currentStreak !== a.currentStreak) return b.currentStreak - a.currentStreak; // Rule 2: Current Streak
+            if (b.longestStreak !== a.longestStreak) return b.longestStreak - a.longestStreak; // Rule 3: Longest Streak
+            return a.createdAt - b.createdAt; // Rule 4: Oldest User first
+        });
+
+        // ==========================================
+        // 4. Send Clean Data to Frontend
+        // ==========================================
+        finalData = leaderboardData.map(u => ({
+            id: u.id,
+            name: u.name,
+            avatar: u.avatar,
+            xp: u.xp,
+            streak: u.currentStreak,
+            badges: u.badges
+        }));
+
+        setCache(cacheKey, finalData);
+      } // End if (!finalData)
+
+      let paginatedData = finalData;
+      if (limit > 0) {
+          const startIndex = (page - 1) * limit;
+          const endIndex = page * limit;
+          paginatedData = finalData.slice(startIndex, endIndex);
+      }
+
+      res.status(200).json(paginatedData);
+    } catch (err) {
+        console.error("Leaderboard Error:", err);
+        res.status(500).json({ message: "Something went wrong", error: err.message });
+    }
 });
 
 module.exports = router;
