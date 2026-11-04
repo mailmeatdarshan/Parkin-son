@@ -13,31 +13,30 @@ import Footer from "../components/showcase/Footer";
 
 function Landing() {
   return (
-    <div className="w-full relative bg-white">
+    <div className="w-full relative bg-black text-zinc-100">
       <Navbar />
       
-      {/* Dark Hero Section */}
-      <div id="hero-section" className="bg-[#020617] w-full">
+      {/* Dark Stoic Hero Section */}
+      <div id="hero-section" className="bg-black w-full">
         <Hero />
       </div>
 
-      {/* Off-white section below hero (overlapping the box) */}
-      <div className="w-full bg-[#FAF9F6] min-h-[600px] flex flex-col items-center">
-        {/* Negative margin to pull the box UP over the hero section */}
-        <div className="-mt-20 md:-mt-32 w-full relative z-30 pb-0 md:pb-10">
+      {/* Stoic interactive workspace preview section below hero */}
+      <div className="w-full bg-black min-h-[600px] flex flex-col items-center relative z-20">
+        <div className="mt-4 md:mt-8 w-full relative z-30 pb-0 md:pb-10">
           <AppDemoWindow />
         </div>
       </div>
 
       {/* Desktop Horizontal Scroll */}
-      <div id="dashboard-section" className="hidden md:block relative">
+      <div id="dashboard-section" className="hidden md:block relative bg-black">
         <HorizontalScrollSections />
         {/* Anchor to scroll exactly to the Features step (end of the 350vh scroll) */}
         <div id="features-desktop-anchor" className="absolute bottom-0 h-screen w-full pointer-events-none" />
       </div>
 
       {/* Mobile Vertical Stack */}
-      <div id="dashboard-section-mobile" className="md:hidden flex flex-col w-full overflow-hidden bg-[#FAF9F6]">
+      <div id="dashboard-section-mobile" className="md:hidden flex flex-col w-full overflow-hidden bg-black">
         <ArchitectureSection />
         <ProgressSection />
         <div id="features-mobile-anchor">

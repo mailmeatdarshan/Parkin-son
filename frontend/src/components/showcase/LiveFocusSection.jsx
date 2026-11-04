@@ -78,7 +78,7 @@ const getAvatarUrl = (avatar, name) => {
 };
 
 // =======================================================
-// 🔥 COMPONENT: Restored Original Top 3 Stack
+// COMPONENT: Restored Original Top 3 Stack
 // =======================================================
 const Top3Stack = memo(({ top3Users, navigate }) => {
     if (!top3Users || top3Users.length < 3) return null;
@@ -224,59 +224,59 @@ const Top3Stack = memo(({ top3Users, navigate }) => {
 });
 
 // =======================================================
-// 🔥 COMPONENT: Modern White Table exactly like the screenshot
+// COMPONENT: Modern White Table exactly like the screenshot
 // =======================================================
 const LeaderboardTable = memo(({ tableUsers }) => {
     if (!tableUsers || tableUsers.length === 0) return null;
     return (
-        <div className="w-full bg-white rounded-[24px] border border-gray-100 shadow-[0_8px_40px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="w-full bg-zinc-950/90 rounded-[24px] border border-zinc-800/90 shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden text-zinc-100">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[700px] lg:min-w-full lg:table-fixed">
                     <thead>
-                        <tr className="border-b border-gray-50">
-                            <th className="py-5 px-4 lg:px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wide w-[22%]">User</th>
-                            <th className="py-5 px-4 lg:px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wide w-[25%]">Task</th>
-                            <th className="py-5 px-4 lg:px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">Duration</th>
-                            <th className="py-5 px-4 lg:px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wide w-[13%]">Streak</th>
-                            <th className="py-5 px-4 lg:px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wide w-[12%] hidden md:table-cell">Time</th>
-                            <th className="py-5 px-4 lg:px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wide w-[13%] text-right">Status</th>
+                        <tr className="border-b border-zinc-800/80 bg-zinc-900/40">
+                            <th className="py-5 px-4 lg:px-6 text-[11px] font-cinzel font-bold text-zinc-400 uppercase tracking-widest w-[22%]">Gladiator</th>
+                            <th className="py-5 px-4 lg:px-6 text-[11px] font-cinzel font-bold text-zinc-400 uppercase tracking-widest w-[25%]">Focus Arena</th>
+                            <th className="py-5 px-4 lg:px-6 text-[11px] font-cinzel font-bold text-zinc-400 uppercase tracking-widest w-[15%]">Duration</th>
+                            <th className="py-5 px-4 lg:px-6 text-[11px] font-cinzel font-bold text-zinc-400 uppercase tracking-widest w-[13%]">Streak</th>
+                            <th className="py-5 px-4 lg:px-6 text-[11px] font-cinzel font-bold text-zinc-400 uppercase tracking-widest w-[12%] hidden md:table-cell">Recency</th>
+                            <th className="py-5 px-4 lg:px-6 text-[11px] font-cinzel font-bold text-zinc-400 uppercase tracking-widest w-[13%] text-right">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {tableUsers.map((user, idx) => {
                             const initials = user.name.split(' ').map(n => n[0]).join('');
                             return (
-                                <tr key={idx} className={idx !== tableUsers.length - 1 ? 'border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer' : 'hover:bg-gray-50/50 transition-colors cursor-pointer'}>
+                                <tr key={idx} className={idx !== tableUsers.length - 1 ? 'border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors cursor-pointer' : 'hover:bg-zinc-900/50 transition-colors cursor-pointer'}>
                                     <td className="py-4 px-4 lg:px-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0" style={{ backgroundColor: user.color }}>
+                                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 border border-white/20" style={{ backgroundColor: user.color }}>
                                                 {initials}
                                             </div>
-                                            <span className="font-bold text-gray-900 truncate">{user.name}</span>
+                                            <span className="font-bold text-white truncate">{user.name}</span>
                                         </div>
                                     </td>
                                     <td className="py-4 px-4 lg:px-6">
                                         <div className="flex items-center gap-2">
                                             <user.TaskIcon size={16} style={{ color: user.color }} strokeWidth={2.5} className="shrink-0" />
-                                            <span className="font-semibold text-gray-600 truncate">{user.task}</span>
+                                            <span className="font-medium text-zinc-300 truncate">{user.task}</span>
                                         </div>
                                     </td>
-                                    <td className="py-4 px-4 lg:px-6 font-bold text-gray-900 whitespace-nowrap">{user.duration}</td>
+                                    <td className="py-4 px-4 lg:px-6 font-bold text-white whitespace-nowrap">{user.duration}</td>
                                     <td className="py-4 px-4 lg:px-6">
                                         <div className="flex items-center gap-1.5 whitespace-nowrap">
                                             <Flame size={15} fill="#3B82F6" className="text-blue-500 shrink-0" />
-                                            <span className="font-bold text-gray-900">{user.streak}</span>
+                                            <span className="font-bold text-zinc-200">{user.streak}</span>
                                         </div>
                                     </td>
-                                    <td className="py-4 px-4 lg:px-6 font-semibold text-gray-400 whitespace-nowrap hidden md:table-cell">{user.time}</td>
+                                    <td className="py-4 px-4 lg:px-6 font-medium text-zinc-500 whitespace-nowrap hidden md:table-cell">{user.time}</td>
                                     <td className="py-4 px-4 lg:px-6">
                                         <div className="flex justify-end">
-                                            <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap ${
+                                            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap ${
                                                 user.status === 'Completed' 
-                                                ? 'bg-green-50 text-green-600 border-green-100/50' 
+                                                ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800/60' 
                                                 : user.status === 'In Progress' 
-                                                ? 'bg-blue-50 text-blue-600 border-blue-100/50'
-                                                : 'bg-orange-50 text-orange-600 border-orange-100/50'
+                                                ? 'bg-blue-950/70 text-blue-400 border-blue-800/60'
+                                                : 'bg-amber-950/70 text-amber-400 border-amber-800/60'
                                             }`}>
                                                 {user.status === 'Completed' ? <CheckCircle2 size={13} strokeWidth={3} /> : user.status === 'In Progress' ? <Clock size={13} strokeWidth={3} /> : <AlertCircle size={13} strokeWidth={3} />} {user.status}
                                             </div>
@@ -319,25 +319,31 @@ const LiveFocusSection = () => {
   ];
 
   return (
-    <section className="relative w-full min-h-[100vh] bg-[#FAF9F6] border-t border-[#D4D4D8] z-10 flex flex-col justify-center pt-20 pb-12 overflow-visible">
+    <section className="relative w-full min-h-[100vh] bg-black text-white border-t border-zinc-900 z-10 flex flex-col justify-center pt-24 pb-16 overflow-visible">
       {/* Vertical Lines wrapping the content, connecting to the top border */}
-      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[1150px] border-l border-r border-[#D4D4D8] pointer-events-none z-0 hidden md:block"></div>
+      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[1150px] border-l border-r border-zinc-900/80 pointer-events-none z-0 hidden md:block"></div>
       
       <div className="max-w-7xl w-full mx-auto px-4 md:px-12 flex flex-col items-center shrink-0 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mb-6">
+        <div className="text-center max-w-2xl mb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="flex flex-col items-center gap-2"
           >
-            <h2 className="text-3xl md:text-4xl font-serif-elegant font-semibold text-[#1F2937] mb-2 tracking-tight">
-              Focus Sessions & Charts
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 mb-2">
+              <span className="font-cinzel text-[11px] font-bold uppercase tracking-[0.25em]">
+                The Pantheon of Discipline
+              </span>
+            </div>
+            <h2 className="font-bodoni text-3xl md:text-5xl font-normal text-white mb-2 tracking-tight">
+              Focus Sessions & Honor Roll
             </h2>
-            <p className="text-[#6B7280] text-base md:text-lg">
-              Real-time updates of deep work, consistency streaks, and task completions from users around the globe.
+            <p className="text-zinc-400 text-sm md:text-base font-sans max-w-lg leading-relaxed">
+              Real-time records of unbroken focus intervals, consistency streaks, and discipline forged by users worldwide.
             </p>
           </motion.div>
         </div>
@@ -348,14 +354,14 @@ const LiveFocusSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full max-w-5xl flex flex-col gap-8"
+          className="w-full max-w-5xl flex flex-col gap-10"
         >
             <div style={{ width: '100%', fontFamily: "'Inter', sans-serif" }}>
                 {isLoading ? (
                     <div style={{ position: 'relative', width: '100%', height: '240px', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '1200px' }}>
-                        <div style={{ position: 'absolute', width: '170px', height: '220px', borderRadius: '16px', transform: 'translate3d(-70px, 12px, -30px) rotate(-6deg) scale(0.95)', background: '#E5E5E5', zIndex: 1 }} className="animate-pulse" />
-                        <div style={{ position: 'absolute', width: '170px', height: '220px', borderRadius: '16px', transform: 'translate3d(70px, 12px, -30px) rotate(6deg) scale(0.95)', background: '#E5E5E5', zIndex: 1 }} className="animate-pulse" />
-                        <div style={{ position: 'relative', width: '170px', height: '220px', borderRadius: '16px', zIndex: 3, background: '#D4D4D4' }} className="animate-pulse" />
+                        <div style={{ position: 'absolute', width: '170px', height: '220px', borderRadius: '16px', transform: 'translate3d(-70px, 12px, -30px) rotate(-6deg) scale(0.95)', background: '#18181b', zIndex: 1 }} className="animate-pulse" />
+                        <div style={{ position: 'absolute', width: '170px', height: '220px', borderRadius: '16px', transform: 'translate3d(70px, 12px, -30px) rotate(6deg) scale(0.95)', background: '#18181b', zIndex: 1 }} className="animate-pulse" />
+                        <div style={{ position: 'relative', width: '170px', height: '220px', borderRadius: '16px', zIndex: 3, background: '#27272a' }} className="animate-pulse" />
                     </div>
                 ) : (
                     <Top3Stack top3Users={top3Users} navigate={handleNavigate} />
@@ -364,12 +370,12 @@ const LiveFocusSection = () => {
 
             <div style={{ width: '100%', fontFamily: "'Inter', sans-serif" }}>
                 {isLoading ? (
-                    <div className="w-full bg-white rounded-[24px] border border-gray-100 shadow-[0_8px_40px_rgba(0,0,0,0.04)] h-[400px] animate-pulse p-8">
-                        <div className="h-8 bg-gray-100 rounded-md w-full mb-6"></div>
-                        <div className="h-12 bg-gray-100 rounded-md w-full mb-4"></div>
-                        <div className="h-12 bg-gray-100 rounded-md w-full mb-4"></div>
-                        <div className="h-12 bg-gray-100 rounded-md w-full mb-4"></div>
-                        <div className="h-12 bg-gray-100 rounded-md w-full mb-4"></div>
+                    <div className="w-full bg-zinc-950/90 rounded-[24px] border border-zinc-800 h-[400px] animate-pulse p-8">
+                        <div className="h-8 bg-zinc-900 rounded-md w-full mb-6"></div>
+                        <div className="h-12 bg-zinc-900/60 rounded-md w-full mb-4"></div>
+                        <div className="h-12 bg-zinc-900/60 rounded-md w-full mb-4"></div>
+                        <div className="h-12 bg-zinc-900/60 rounded-md w-full mb-4"></div>
+                        <div className="h-12 bg-zinc-900/60 rounded-md w-full mb-4"></div>
                     </div>
                 ) : (
                     <LeaderboardTable tableUsers={tableUsers} />

@@ -4,26 +4,32 @@ import { ExternalLink, Heart } from 'lucide-react';
 
 const SponsorSection = () => {
   return (
-    <section className="w-full bg-[#FAF9F6] py-12 md:py-16 px-4 md:px-12">
+    <section className="w-full bg-black py-16 md:py-20 px-4 md:px-12 border-t border-zinc-900 text-white">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative rounded-[28px] overflow-hidden min-h-[280px] md:min-h-[320px]"
-          style={{
-            background: 'linear-gradient(135deg, rgba(220, 230, 245, 0.9) 0%, rgba(170, 210, 245, 0.85) 40%, rgba(100, 175, 240, 0.8) 70%, rgba(60, 150, 230, 0.75) 100%)'
-          }}
+          className="relative rounded-[28px] overflow-hidden min-h-[280px] md:min-h-[320px] bg-zinc-950 border border-zinc-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]"
         >
+          {/* Subtle Ambient Radial Lighting */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-0"
+            style={{
+              background: "radial-gradient(ellipse at 80% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 70%)"
+            }}
+          />
+
           {/* Background Image */}
           <div 
-            className="absolute inset-0 z-0"
+            className="absolute inset-0 z-0 pointer-events-none"
             style={{
               backgroundImage: 'url(/bheek.webp)',
               backgroundSize: 'cover',
               backgroundPosition: 'center right',
-              opacity: 0.45
+              opacity: 0.15,
+              filter: 'grayscale(100%) brightness(0.6)'
             }}
           />
 
@@ -32,22 +38,22 @@ const SponsorSection = () => {
             
             {/* Left Side - Text */}
             <div className="flex-1 max-w-lg">
-              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6 shadow-sm">
-                <Heart size={14} className="text-red-400 fill-red-400" />
-                <span className="text-sm font-semibold text-[#1F2937]">Sponsor Parkin-son</span>
+              <div className="inline-flex items-center gap-2 bg-zinc-900/90 border border-zinc-800 rounded-full px-4 py-1.5 mb-6 shadow-sm">
+                <Heart size={13} className="text-red-400 fill-red-400" />
+                <span className="font-cinzel text-xs font-bold uppercase tracking-widest text-zinc-300">Patron of Parkin'son</span>
               </div>
 
-              <h2 className="text-3xl md:text-[42px] leading-tight font-bold text-[#1F2937] mb-4 tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
-                Help us build the<br />ultimate workspace.
+              <h2 className="font-bodoni text-3xl md:text-[40px] leading-tight font-normal text-white mb-4 tracking-tight">
+                Help Us Build The<br />Ultimate Sanctuary.
               </h2>
 
-              <p className="text-[#4B5563] text-base md:text-lg leading-relaxed font-medium">
-                Parkin-son is indie-crafted and free of clutter. Your support keeps the servers running, funds new focus widgets, and helps us keep building a quieter web.
+              <p className="text-zinc-400 text-sm md:text-base leading-relaxed font-sans font-normal">
+                Parkin'son is indie-crafted, ad-free, and private by design. Your support sustains zero-knowledge servers, empowers timeless new focus tools, and preserves an unpolluted web.
               </p>
             </div>
 
             {/* Right Side - Buttons */}
-            <div className="flex flex-col gap-3 w-full md:w-auto min-w-[240px]">
+            <div className="flex flex-col gap-3.5 w-full md:w-auto min-w-[240px]">
               <a 
                 href="https://github.com/mailmeatdarshan" 
                 target="_blank" 
@@ -56,23 +62,23 @@ const SponsorSection = () => {
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-[#0F172A] text-white px-6 py-3.5 rounded-xl font-bold text-base flex items-center justify-between gap-3 shadow-lg cursor-pointer hover:bg-[#1E293B] transition-colors"
+                  className="bg-white hover:bg-zinc-200 text-black px-6 py-4 rounded-xl font-cinzel font-bold text-xs uppercase tracking-wider flex items-center justify-between gap-3 shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer transition-all"
                 >
                   <span>GitHub Sponsors</span>
                   <ExternalLink size={16} />
                 </motion.div>
               </a>
               <a 
-                href="#" 
+                href="https://github.com/mailmeatdarshan" 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white/90 backdrop-blur-sm text-[#0F172A] border border-gray-200 px-6 py-3.5 rounded-xl font-bold text-base flex items-center justify-between gap-3 shadow-sm cursor-pointer hover:bg-white transition-colors"
+                  className="bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white px-6 py-4 rounded-xl font-cinzel font-semibold text-xs uppercase tracking-wider flex items-center justify-between gap-3 shadow-sm cursor-pointer transition-all"
                 >
-                  <span>Buy Me a Coffee</span>
+                  <span>Buy A Coffee</span>
                   <ExternalLink size={16} />
                 </motion.div>
               </a>

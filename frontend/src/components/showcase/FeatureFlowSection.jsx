@@ -78,7 +78,7 @@ const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
       
       {/* Horizontal Connector Line (Desktop Only) */}
       <div 
-        className="hidden md:block absolute top-1/2 -translate-y-1/2 border-t-2 border-dashed border-[#5C9EAD]"
+        className="hidden md:block absolute top-1/2 -translate-y-1/2 border-t-2 border-dashed border-zinc-700"
         style={{
           left: isEven ? '45%' : '49.5%',
           right: isEven ? '49.5%' : '45%',
@@ -95,7 +95,7 @@ const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
              right: !isEven ? rightPos : 'auto',
              opacity: opacity,
            }}
-           className="z-20 flex items-center justify-center bg-[#FAF9F6] px-1"
+           className="z-20 flex items-center justify-center bg-black px-1"
          >
            <motion.div
              animate={{ 
@@ -106,23 +106,23 @@ const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
              }}
              transition={{ duration: 0.2 }}
            >
-             <div className="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[12px] border-t-[#5C9EAD]"></div>
+             <div className="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[12px] border-t-zinc-400"></div>
            </motion.div>
          </motion.div>
       </div>
       
-      <div className="w-full md:w-[45%] bg-white border border-[#E5E3DB] rounded-[24px] p-4 lg:p-5 shadow-sm flex flex-col justify-between gap-2 group hover:shadow-md hover:border-[#5C9EAD]/30 transition-all">
+      <div className="w-full md:w-[45%] bg-zinc-950/90 border border-zinc-800/90 rounded-[24px] p-4 lg:p-5 shadow-[0_15px_40px_rgba(0,0,0,0.6)] flex flex-col justify-between gap-2 group hover:shadow-xl hover:border-zinc-500 transition-all">
         
-        <h4 className="font-bold text-black text-[20px] lg:text-[22px] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis w-full">
+        <h4 className="font-bodoni font-normal text-white text-[20px] lg:text-[22px] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis w-full">
           {feature.title}
         </h4>
         
         <div className="flex justify-between items-center gap-4 mt-1">
-          <p className="text-zinc-500 text-[13px] lg:text-[14px] font-medium leading-relaxed w-[45%]">
+          <p className="text-zinc-400 text-[13px] lg:text-[14px] font-sans leading-relaxed w-[45%]">
             {feature.desc}
           </p>
           
-          <div className="w-[50%] max-w-[240px] h-[90px] sm:h-[110px] bg-gradient-to-br from-[#E8F3F5] to-[#CBE4E9] rounded-2xl flex items-center justify-center shadow-inner group-hover:-translate-y-1 transition-all duration-300 overflow-hidden shrink-0">
+          <div className="w-[50%] max-w-[240px] h-[90px] sm:h-[110px] bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:-translate-y-1 transition-all duration-300 overflow-hidden shrink-0">
             {index === 0 ? (
               <video autoPlay muted loop playsInline webkit-playsinline="true" className="w-full h-full object-cover">
                 <source src="/1st.webm" type="video/webm" />
@@ -138,7 +138,7 @@ const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
                 <source src="/4.webm" type="video/webm" />
               </video>
             ) : (
-              <feature.icon size={36} className="text-[#5C9EAD]" strokeWidth={1.5} />
+              <feature.icon size={36} className="text-zinc-300" strokeWidth={1.5} />
             )}
           </div>
         </div>
@@ -176,7 +176,7 @@ const FeatureFlowSection = () => {
   const arrowTop = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
-    <div className="w-screen min-h-screen bg-[#FAF9F6] flex flex-col justify-start pt-20 md:pt-[10vh] lg:pt-[12vh] pb-8 relative overflow-hidden shrink-0" id="feature-flow-section">
+    <div className="w-screen min-h-screen bg-black flex flex-col justify-start pt-20 md:pt-[10vh] lg:pt-[12vh] pb-8 relative overflow-hidden shrink-0" id="feature-flow-section">
       {/* Applying scale to fit screen and ensure it clears the top nav */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 w-full flex flex-col items-center origin-top scale-95 md:scale-[0.75] lg:scale-[0.80]">
         
@@ -206,7 +206,7 @@ const FeatureFlowSection = () => {
                 
                 // pathLength="100" normalizes the total length to 100
                 const patternLength = 100 / numDashes;
-                const dashLength = 4; // Length of the blue dash
+                const dashLength = 4; // Length of the dash
                 const gapLength = patternLength - dashLength;
                 
                 return (
@@ -214,13 +214,13 @@ const FeatureFlowSection = () => {
                     {/* Background track line */}
                     <path 
                       d={`M ${startX} 0 C ${startX} 50, 50 60, 50 100`} 
-                      stroke="#E5E3DB" strokeWidth="1.5" fill="none"
+                      stroke="#27272a" strokeWidth="1.5" fill="none"
                       vectorEffect="non-scaling-stroke"
                     />
                     {/* Animated flowing dashed line */}
                     <path 
                       d={`M ${startX} 0 C ${startX} 50, 50 60, 50 100`} 
-                      stroke="#5C9EAD" strokeWidth="3" strokeDasharray={`${dashLength} ${gapLength}`} fill="none"
+                      stroke="#ffffff" strokeWidth="2.5" strokeDasharray={`${dashLength} ${gapLength}`} fill="none"
                       vectorEffect="non-scaling-stroke"
                       pathLength="100"
                       className="animate-flow"
@@ -232,9 +232,9 @@ const FeatureFlowSection = () => {
           </div>
 
           {topIcons.map((item, index) => (
-            <div key={index} className="w-[64px] h-[64px] border-[1.5px] border-gray-400/80 bg-transparent flex flex-col items-center justify-center gap-1 group hover:border-[#5C9EAD] transition-colors relative z-20 cursor-default">
-              <item.icon size={22} strokeWidth={1.5} className="text-gray-500 group-hover:text-[#5C9EAD] transition-colors" />
-              <span className="text-[10px] font-medium text-gray-700 capitalize group-hover:text-[#5C9EAD] transition-colors">{item.name}</span>
+            <div key={index} className="w-[64px] h-[64px] border border-zinc-800 bg-zinc-950/80 rounded-xl flex flex-col items-center justify-center gap-1 group hover:border-zinc-500 hover:bg-zinc-900 transition-all relative z-20 cursor-default shadow-sm shadow-black">
+              <item.icon size={22} strokeWidth={1.5} className="text-zinc-500 group-hover:text-white transition-colors" />
+              <span className="text-[10px] font-cinzel font-semibold text-zinc-400 capitalize group-hover:text-white transition-colors">{item.name}</span>
             </div>
           ))}
         </div>
@@ -245,18 +245,18 @@ const FeatureFlowSection = () => {
             <motion.div 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-gradient-to-r from-[#4A8594] to-[#5C9EAD] px-8 py-3 rounded-2xl shadow-[0_8px_30px_rgba(92,158,173,0.3)] flex flex-col items-center border border-white/20"
+              className="bg-zinc-900 border border-zinc-700 hover:border-zinc-500 px-8 py-3.5 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.9)] flex flex-col items-center transition-all"
             >
-              <h3 className="text-white text-3xl font-bold tracking-tight mb-1 flex items-center gap-3">
-                PARKIN-SON
+              <h3 className="font-cinzel text-white text-2xl font-bold tracking-widest mb-0.5 flex items-center gap-3">
+                Parkin'son
               </h3>
-              <p className="text-white/80 text-sm font-medium tracking-wide">Your Productivity Engine</p>
+              <p className="font-cinzel text-zinc-400 text-xs font-semibold tracking-widest uppercase">The Indomitable Sanctum</p>
             </motion.div>
           </Link>
           {/* SVG line down from CTA */}
           <div className="absolute left-1/2 top-full w-px h-8 bg-transparent -translate-x-1/2">
              <svg width="2" height="32" className="absolute top-0 left-0">
-               <line x1="1" y1="0" x2="1" y2="32" stroke="#5C9EAD" strokeWidth="2" strokeDasharray="4 4" />
+               <line x1="1" y1="0" x2="1" y2="32" stroke="#71717a" strokeWidth="2" strokeDasharray="4 4" />
              </svg>
           </div>
         </div>
@@ -265,19 +265,19 @@ const FeatureFlowSection = () => {
         <div ref={containerRef} className="flex flex-col gap-6 md:gap-0 w-full relative z-10 pb-4 mt-4">
           
           {/* Center Vertical Dashed Line (Desktop Only) */}
-          <div className="hidden md:block absolute left-1/2 top-0 -bottom-32 w-px border-l-2 border-dashed border-[#5C9EAD] -translate-x-1/2 z-0">
+          <div className="hidden md:block absolute left-1/2 top-0 -bottom-32 w-px border-l-2 border-dashed border-zinc-700 -translate-x-1/2 z-0">
             {/* Upward Scroll Arrow Only */}
             <motion.div 
               style={{ top: arrowTop }}
               animate={{ opacity: scrollDir === 'up' ? 1 : 0 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-1/2 -translate-x-1/2 -ml-[1px] z-20 flex items-center justify-center bg-[#FAF9F6] py-1.5"
+              className="absolute left-1/2 -translate-x-1/2 -ml-[1px] z-20 flex items-center justify-center bg-black py-1.5"
             >
                <motion.div
                  animate={{ rotate: scrollDir === 'down' ? 0 : 180 }}
                  transition={{ duration: 0.3 }}
                >
-                 <div className="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[12px] border-t-[#5C9EAD]"></div>
+                 <div className="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[12px] border-t-white"></div>
                </motion.div>
             </motion.div>
           </div>

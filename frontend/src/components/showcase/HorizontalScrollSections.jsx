@@ -29,19 +29,19 @@ const HorizontalScrollSections = () => {
   });
 
   return (
-    <section ref={targetRef} className="relative h-[300vh] bg-[#FAF9F6]">
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col">
+    <section ref={targetRef} className="relative h-[300vh] bg-black">
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col bg-black">
         
         {/* Top Progress Navigation */}
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 flex flex-col items-center pointer-events-none px-4">
-          <div className="flex w-full text-center mb-3 text-[12px] md:text-[13px] font-bold uppercase tracking-widest">
-            <div className={`flex-1 transition-colors duration-500 ${activeStep === 0 ? "text-[#5C9EAD]" : "text-gray-300"}`}>Account</div>
-            <div className={`flex-1 transition-colors duration-500 ${activeStep === 1 ? "text-[#5C9EAD]" : "text-gray-300"}`}>Progress</div>
-            <div className={`flex-1 transition-colors duration-500 ${activeStep === 2 ? "text-[#5C9EAD]" : "text-gray-300"}`}>Features</div>
+          <div className="flex w-full text-center mb-3 text-[11px] md:text-[12px] font-cinzel font-bold uppercase tracking-[0.25em]">
+            <div className={`flex-1 transition-colors duration-500 ${activeStep === 0 ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : "text-zinc-600"}`}>Vault</div>
+            <div className={`flex-1 transition-colors duration-500 ${activeStep === 1 ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : "text-zinc-600"}`}>Progress</div>
+            <div className={`flex-1 transition-colors duration-500 ${activeStep === 2 ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : "text-zinc-600"}`}>Sanctum</div>
           </div>
-          <div className="w-full h-[3px] bg-gray-200/60 rounded-full relative overflow-hidden">
+          <div className="w-full h-[2.5px] bg-zinc-800/90 rounded-full relative overflow-hidden">
             <motion.div 
-              className="absolute top-0 left-0 h-full bg-[#5C9EAD] rounded-full w-1/3 shadow-[0_0_10px_rgba(92,158,173,0.8)] will-change-transform transform-gpu"
+              className="absolute top-0 left-0 h-full bg-white rounded-full w-1/3 shadow-[0_0_12px_rgba(255,255,255,0.9)] will-change-transform transform-gpu"
               style={{ x: indicatorX }}
             />
           </div>
