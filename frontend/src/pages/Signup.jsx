@@ -41,7 +41,7 @@ export default function Signup() {
       <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800/40 p-2 mb-3 shadow-inner">
-            <img src="/parkinson.svg" alt="Parkin-son Logo" className="w-full h-full object-contain" />
+            <img src="/parkinson.svg" alt="Parkin'son Logo" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight">Create Account</h2>
           <p className="text-xs text-zinc-400 mt-1">Start tracking your deep focus time</p>

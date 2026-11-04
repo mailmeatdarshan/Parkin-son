@@ -13,7 +13,7 @@ import { apiFetch } from '../../apiClient';
 // Helper for readability
 const generateRecoverySalt = () => generateUserSalt();
 
-// 🔥 YAHAN YE NAYA FUNCTION ADD KAR
+// YAHAN YE NAYA FUNCTION ADD KAR
 const getAuthHash = async (password) => {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -25,9 +25,9 @@ const getAuthHash = async (password) => {
 
 const Login = () => {
     const navigate = useNavigate();
-    const location = useLocation(); // 🔥 NEW: Signup page se data pakadne ke liye!
+    const location = useLocation(); // NEW: Signup page se data pakadne ke liye!
     
-    // 🔥 VIEWS
+    // VIEWS
     const [view, setView] = useState('login'); 
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ const Login = () => {
     const { setDek } = useCrypto();
     const [formData, setFormData] = useState({ email: '', password: '' });
 
-    // 🔥 MAGIC INTERCEPTOR: Agar user Signup page se Google Login karke aaya hai
+    // MAGIC INTERCEPTOR: Agar user Signup page se Google Login karke aaya hai
     useEffect(() => {
         if (location.state && location.state.fromSignup) {
             if (location.state.isNewUser || !location.state.cryptoKeys) {
@@ -77,7 +77,7 @@ const Login = () => {
 
         setLoading(true);
         try {
-            // 🔥 NAYI LINE: Raw password ka hash banao
+            // NAYI LINE: Raw password ka hash banao
             const authPasswordHash = await getAuthHash(formData.password);
 
             const response = await apiFetch("/api/auth/signin", {
@@ -86,7 +86,7 @@ const Login = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: formData.email,
-                    password: authPasswordHash // 🔥 RAW PASSWORD KI JAGAH YAHAN HASH BHEJO
+                    password: authPasswordHash // RAW PASSWORD KI JAGAH YAHAN HASH BHEJO
                 })
             });
             const data = await response.json();
@@ -105,12 +105,12 @@ const Login = () => {
                     const passwordKEK = await deriveKEK(formData.password, userSalt, pbkdf2Iterations);
                     const masterDEK = await decryptDEK(encryptedDEK_pwd, passwordKEK);
                     
-                    // 🔥 Hamesha True (Keep unlocked)
+                    // Hamesha True (Keep unlocked)
                     await setDek(masterDEK, true); 
                     setSuccessMsg("Logged in & Vault Unlocked!");
                     setIsFlipping(true);
                     
-                    // 🔥 SPA Navigation is BACK!
+                    // SPA Navigation is BACK!
                   setTimeout(() =>navigate('/profile'), 1200);
                     return; 
                 } catch (autoUnlockErr) {
@@ -337,18 +337,18 @@ const Login = () => {
 
             <div className="hidden md:block"><ShaderBackground /></div>
 
-            {/* 🔥 CROP FIX PRESERVED */}
+            {/* CROP FIX PRESERVED */}
             <div className="min-h-[100dvh] w-full flex items-center justify-center p-4 lg:p-8 relative z-10 overflow-y-auto py-10">
                 <div className={`w-full max-w-[1100px] md:min-h-[700px] flex flex-col md:flex-row backdrop-blur-xl rounded-3xl overflow-hidden relative transition-all duration-300 my-auto shadow-2xl ${isFlipping ? 'animate-page-turn' : ''}`}
-                    style={{ background: "rgba(20, 24, 54, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)", borderTop: "1px solid rgba(255, 255, 255, 0.15)", borderLeft: "1px solid rgba(255, 255, 255, 0.15)", boxShadow: `8px 12px 32px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.1), inset -1px -1px 4px rgba(0, 0, 0, 0.2)` }}
+                    style={{ background: "rgba(10, 10, 12, 0.70)", border: "1px solid rgba(255, 255, 255, 0.08)", borderTop: "1px solid rgba(255, 255, 255, 0.20)", borderLeft: "1px solid rgba(255, 255, 255, 0.20)", boxShadow: `0 25px 60px rgba(0, 0, 0, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.12), inset -1px -1px 4px rgba(0, 0, 0, 0.4)` }}
                 >
                     {/* LEFT PANEL */}
                     <div className="absolute inset-0 md:relative w-full md:w-[45%] flex flex-col overflow-hidden bg-black h-full md:h-auto z-0">
-                        <img src="/lokind.webp" alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-80 md:opacity-100" />
+                        <img src="/stoic1.jpg" alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-40 md:opacity-40" />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#01040a]/95 md:hidden pointer-events-none"></div>
                         <div className="relative z-10 flex flex-col h-[12dvh] md:h-auto md:flex-1 p-5 md:p-10 pb-0 md:pb-8 justify-center md:justify-between pointer-events-none">
                             <div className="animate-fade-in pointer-events-auto flex justify-center md:justify-start">
-                                <span onClick={() => navigate('/')} className="text-white text-3xl md:text-5xl tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] cursor-pointer" style={{ fontFamily: "'Pixeloid', sans-serif" }}>Parkin-son</span>
+                                <span onClick={() => navigate('/')} className="text-white text-3xl md:text-5xl tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] cursor-pointer" style={{ fontFamily: "'Pixeloid', sans-serif" }}>Parkin'son</span>
                             </div>
                             <div className="hidden md:flex flex-col pointer-events-auto mb-0">
                                 <span className="text-white/80 text-[12px] font-medium mb-1 md:mb-2">You can easily</span>
@@ -438,7 +438,7 @@ const Login = () => {
                                                                        <button onClick={() => {
                                         setSuccessMsg("Vault Setup Complete!");
                                         setIsFlipping(true);
-                                        // 🔥 YE WALI LINE BADALNI HAI 👇
+                                        // YE WALI LINE BADALNI HAI 
                                         setTimeout(() => navigate('/profile'), 1200); 
                                     }} disabled={!recoverySaved} className="w-full bg-emerald-500/20 text-emerald-400 py-3 rounded-xl disabled:opacity-50 mt-2 transition-all">
                                         Enter Workspace
@@ -467,7 +467,7 @@ const Login = () => {
                                             </div>
 
                                             <div className="flex flex-col gap-2.5 md:gap-3 w-full">
-                                                {/* 🔥 BORDER FIX PRESERVED */}
+                                                {/* BORDER FIX PRESERVED */}
                                                 <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" className="bg-white/[0.05] border border-transparent rounded-xl px-4 py-2.5 md:py-3 text-[13px] text-white outline-none focus:bg-white/[0.08] transition-colors" />
                                                 <div className="relative">
                                                     <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder="Login Password" className="w-full bg-white/[0.05] border border-transparent rounded-xl px-4 py-2.5 md:py-3 text-[13px] text-white pr-12 outline-none focus:bg-white/[0.08] transition-colors" />

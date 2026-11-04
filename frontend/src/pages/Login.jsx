@@ -34,7 +34,7 @@ export default function Login() {
         {/* Brand Logo */}
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 rounded-full overflow-hidden border border-zinc-700 bg-zinc-800/40 p-2 mb-3 shadow-inner">
-            <img src="/parkinson.svg" alt="Parkin-son Logo" className="w-full h-full object-contain" />
+            <img src="/parkinson.svg" alt="Parkin'son Logo" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight">Welcome Back</h2>
           <p className="text-xs text-zinc-400 mt-1">Sign in to continue your focus streak</p>

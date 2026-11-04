@@ -3,7 +3,7 @@ import { apiFetch } from '../../apiClient';
 
 const Logout = () => {
 
-    // 🔴 SECURE LOGOUT FUNCTIONALITY (FIXED B-F CACHE ISSUE)
+    // SECURE LOGOUT FUNCTIONALITY (FIXED B-F CACHE ISSUE)
     const handleLogout = async () => {
         try {
             const response = await apiFetch("/api/auth/logout", {
@@ -16,7 +16,7 @@ const Logout = () => {
                 localStorage.clear();
                 sessionStorage.clear();
                 
-                // 🔥 Hard redirect to wipe React memory state
+                // Hard redirect to wipe React memory state
                 window.location.replace('/login');
             }
         } catch (error) {
