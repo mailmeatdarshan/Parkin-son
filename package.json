@@ -1,8 +1,8 @@
 {
-  "name": "parkin-son",
+  "name": "Parkin'son",
   "version": "1.0.0",
   "private": true,
-  "description": "Parkin-son - Full-Stack Productivity & Deep Focus Suite",
+  "description": "Parkin'son - Full-Stack Productivity & Deep Focus Suite",
   "scripts": {
     "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "backend": "npm run dev --prefix backend",
