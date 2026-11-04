@@ -54,7 +54,7 @@ export const CalendarNotificationProvider = ({ children }) => {
         <CalendarContext.Provider value={{ events, fetchEvents }}>
             {children}
             
-            {/* 🔴 GLOBAL POPUP TOAST */}
+            {/* GLOBAL POPUP TOAST */}
             {notification && (
                 <div className="fixed top-5 right-5 z-[100] animate-fade-in shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
                     <div className="bg-[#141824] border border-white/10 p-4 rounded-2xl flex items-start gap-4 max-w-sm" style={{ borderLeft: `4px solid ${notification.color}` }}>

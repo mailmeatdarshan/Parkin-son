@@ -479,7 +479,7 @@ const Workspace = () => {
         return (
             <div key={(day._id || day.id)} style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
                 <div className="day-box" style={{ width: '100%', border: `1px solid ${COLORS.border}`, borderRadius: 8, backgroundColor: COLORS.card, padding: 24, transition: 'all 0.3s ease-in-out' }}>
-                    {/* 🔥 UI Layout fixed to gracefully stack on mobile using flexWrap and smart margins */}
+                    {/* UI Layout fixed to gracefully stack on mobile using flexWrap and smart margins */}
                     <div className="day-box-header" style={{ display: 'flex', gap: 24, justifyContent: 'space-between', alignItems: 'center', paddingBottom: isExpanded ? 16 : 0, borderBottom: isExpanded ? `1px solid ${COLORS.border}` : 'none', transition: 'all 0.3s ease' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
@@ -492,7 +492,7 @@ const Workspace = () => {
                         {isExpanded && (
                             <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minWidth: 0 }}>
                                 <div className="timer-container" style={{ display: 'flex', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.02)', padding: '6px 16px', borderRadius: 12, border: `1px solid ${COLORS.border}` }}>
-                                    {/* 🔥 ATOM LEVEL OPTIMIZATION: Sirf timer component update hoga, pura Workspace nahi */}
+                                    {/* ATOM LEVEL OPTIMIZATION: Sirf timer component update hoga, pura Workspace nahi */}
                                     <LiveTimerDisplay sessions={sessions} localStartTime={localStartTimes[(day._id || day.id)]} />
                                     <div className="timer-divider" style={{ height: 20, width: 1, backgroundColor: COLORS.borderHover, margin: '0 4px' }}></div>
                                     {isConfirming ? (
@@ -594,7 +594,7 @@ const Workspace = () => {
                 .header-btn { background: none; border: none; color: ${COLORS.textPrimary}; font-size: 14px; font-weight: 400; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
                 .header-btn:hover { opacity: 0.6; }
                 
-                /* 🔥 New Solid White Buttons */
+                /* New Solid White Buttons */
                 .white-btn { background: #FFFFFF; color: #000000; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; }
                 .white-btn:hover { opacity: 0.8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,255,255,0.1); }
 
@@ -675,7 +675,7 @@ const Workspace = () => {
                         </div>
                     )}
 
-                            {/* 🔥 UPDATED: Premium Delete Warning Modal */}
+                            {/* UPDATED: Premium Delete Warning Modal */}
                     {deleteBoxWarning && (
                         <>
                             {/* Backdrop Blur Overlay */}
@@ -710,59 +710,57 @@ const Workspace = () => {
                             </div>
                         </>
                     )}
-                    {React.useMemo(() => (
-                        <div className="workspace-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                                <h1 style={{ fontSize: 32, fontWeight: 700, fontFamily: "'Playfair Display', serif", letterSpacing: '-0.01em', color: '#FFFFFF', margin: 0 }}>
-                                    {viewMode === 'main' ? 'Encrypted Workspace' : 'Encrypted History'}
-                                </h1>
-                                {viewMode === 'history' && (
-                                    <span style={{ color: COLORS.textMuted, fontSize: 14 }}>
-                                        / last {historyRange.replace('months', ' months').replace('year', ' year').replace('month', ' month')}
-                                    </span>
-                                )}
-                            </div>
-                            
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                                {viewMode === 'history' ? (
-                                    <button onClick={() => setViewMode('main')} style={{ background: 'none', border: `1px solid ${COLORS.border}`, color: COLORS.textPrimary, padding: '8px 16px', borderRadius: 4, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <ArrowLeft size={14} /> Back
-                                    </button>
-                                ) : (
-                                    <>
-                                        <div style={{ position: 'relative' }} ref={dropdownRef}>
-                                            <button onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.1)`, color: '#F4F4F5', padding: '8px 16px', borderRadius: 8, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s', fontWeight: 500 }} className="hover:bg-white/10 hover:border-white/20">
-                                                <History size={14} /> History
-                                            </button>
-                                            
-                                            {historyDropdownOpen && (
-                                                <div className="history-dropdown" style={{ position: 'absolute', top: '100%', right: 0, marginTop: 12, background: '#FFFFFF', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.5)', width: 220, zIndex: 100, overflow: 'hidden', animation: 'fadeIn 0.2s ease' }}>
-                                                    {[
-                                                        { id: 'month', label: 'Last 1 Month' },
-                                                        { id: '3months', label: 'Last 3 Months' },
-                                                        { id: '6months', label: 'Last 6 Months' },
-                                                        { id: 'year', label: 'Last 1 Year' }
-                                                    ].map((option, idx) => (
-                                                        <button key={option.id} onClick={() => { setHistoryRange(option.id); setViewMode('history'); setHistoryDropdownOpen(false); }}
-                                                            style={{ width: '100%', textAlign: 'left', padding: '14px 20px', background: 'transparent', border: 'none', borderBottom: idx !== 3 ? '1px solid #F3F4F6' : 'none', color: '#111827', fontSize: 14, fontWeight: 500, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F9FAFB'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                                        >
-                                                            {option.label}
-                                                            <ChevronRight size={16} color="#9CA3AF" />
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <button onClick={handleCreateDaySession} disabled={isCreatingBox} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.1)`, color: '#F4F4F5', padding: '8px 16px', borderRadius: 8, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s', fontWeight: 500, whiteSpace: 'nowrap' }} className="hover:bg-white/10 hover:border-white/20">
-                                            <Plus size={16} /> {isCreatingBox ? 'creating...' : 'New Box'}
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                    <div className="workspace-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <h1 style={{ fontSize: 32, fontWeight: 700, fontFamily: "'Playfair Display', serif", letterSpacing: '-0.01em', color: '#FFFFFF', margin: 0 }}>
+                                {viewMode === 'main' ? 'Encrypted Workspace' : 'Encrypted History'}
+                            </h1>
+                            {viewMode === 'history' && (
+                                <span style={{ color: COLORS.textMuted, fontSize: 14 }}>
+                                    / last {historyRange.replace('months', ' months').replace('year', ' year').replace('month', ' month')}
+                                </span>
+                            )}
                         </div>
-                    ), [viewMode, historyRange, historyDropdownOpen, isCreatingBox])}
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            {viewMode === 'history' ? (
+                                <button onClick={() => setViewMode('main')} style={{ background: 'none', border: `1px solid ${COLORS.border}`, color: COLORS.textPrimary, padding: '8px 16px', borderRadius: 4, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <ArrowLeft size={14} /> Back
+                                </button>
+                            ) : (
+                                <>
+                                    <div style={{ position: 'relative' }} ref={dropdownRef}>
+                                        <button onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.1)`, color: '#F4F4F5', padding: '8px 16px', borderRadius: 8, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s', fontWeight: 500 }} className="hover:bg-white/10 hover:border-white/20">
+                                            <History size={14} /> History
+                                        </button>
+                                        
+                                        {historyDropdownOpen && (
+                                            <div className="history-dropdown" style={{ position: 'absolute', top: '100%', right: 0, marginTop: 12, background: '#FFFFFF', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.5)', width: 220, zIndex: 100, overflow: 'hidden', animation: 'fadeIn 0.2s ease' }}>
+                                                {[
+                                                    { id: 'month', label: 'Last 1 Month' },
+                                                    { id: '3months', label: 'Last 3 Months' },
+                                                    { id: '6months', label: 'Last 6 Months' },
+                                                    { id: 'year', label: 'Last 1 Year' }
+                                                ].map((option, idx) => (
+                                                    <button key={option.id} onClick={() => { setHistoryRange(option.id); setViewMode('history'); setHistoryDropdownOpen(false); }}
+                                                        style={{ width: '100%', textAlign: 'left', padding: '14px 20px', background: 'transparent', border: 'none', borderBottom: idx !== 3 ? '1px solid #F3F4F6' : 'none', color: '#111827', fontSize: 14, fontWeight: 500, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F9FAFB'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                    >
+                                                        {option.label}
+                                                        <ChevronRight size={16} color="#9CA3AF" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button onClick={handleCreateDaySession} disabled={isCreatingBox} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.1)`, color: '#F4F4F5', padding: '8px 16px', borderRadius: 8, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s', fontWeight: 500, whiteSpace: 'nowrap' }} className="hover:bg-white/10 hover:border-white/20">
+                                        <Plus size={16} /> {isCreatingBox ? 'creating...' : 'New Box'}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
                         {viewMode === 'main' ? (

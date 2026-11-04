@@ -63,15 +63,15 @@ const ForgotPassword = () => {
 
             <div className="h-[100dvh] w-full flex items-center justify-center p-0 md:p-4 lg:p-8 relative z-10 overflow-hidden">
                 <div className={`w-full max-w-[1100px] h-[100dvh] md:h-auto md:min-h-[700px] flex flex-col md:flex-row backdrop-blur-xl md:rounded-3xl overflow-hidden relative transition-all duration-300 ${isFlipping ? 'animate-page-turn' : ''}`}
-                    style={{ background: "rgba(20, 24, 54, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)", borderTop: "1px solid rgba(255, 255, 255, 0.15)", borderLeft: "1px solid rgba(255, 255, 255, 0.15)", boxShadow: `8px 12px 32px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.1), inset -1px -1px 4px rgba(0, 0, 0, 0.2)` }}
+                    style={{ background: "rgba(10, 10, 12, 0.70)", border: "1px solid rgba(255, 255, 255, 0.08)", borderTop: "1px solid rgba(255, 255, 255, 0.20)", borderLeft: "1px solid rgba(255, 255, 255, 0.20)", boxShadow: `0 25px 60px rgba(0, 0, 0, 0.8), inset 1px 1px 2px rgba(255, 255, 255, 0.12), inset -1px -1px 4px rgba(0, 0, 0, 0.4)` }}
                 >
                     {/* LEFT PANEL */}
                     <div className="absolute inset-0 md:relative w-full md:w-[45%] flex flex-col overflow-hidden bg-black h-[100dvh] md:h-auto z-0">
-                        <img src="/lokind.webp" alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-80 md:opacity-100" />
+                        <img src="/stoic1.jpg" alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-40 md:opacity-40" />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#01040a]/95 md:hidden pointer-events-none"></div>
                         <div className="relative z-10 flex flex-col h-[12dvh] md:h-auto md:flex-1 p-5 md:p-10 pb-0 md:pb-8 justify-center md:justify-between pointer-events-none">
                             <div className="animate-fade-in pointer-events-auto flex justify-center md:justify-start">
-                                <span onClick={() => navigate('/')} className="text-white text-3xl md:text-5xl tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] cursor-pointer" style={{ fontFamily: "'Pixeloid', sans-serif" }}>Parkin-son</span>
+                                <span onClick={() => navigate('/')} className="text-white text-3xl md:text-5xl tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] cursor-pointer" style={{ fontFamily: "'Pixeloid', sans-serif" }}>Parkin'son</span>
                             </div>
                             <div className="hidden md:flex flex-col pointer-events-auto mb-0">
                                 <span className="text-white/80 text-[12px] font-medium mb-1 md:mb-2">You can easily</span>

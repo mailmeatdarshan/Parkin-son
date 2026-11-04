@@ -15,7 +15,7 @@ const daysessionSchema = new Schema(
 
     totalDaytime: { type: Number, default: 0 },
     totalSessions: { type: Number, default: 0 },
-    stopwatchTime: { type: Number, default: 0 }, // 🔥 NEW: Stopwatch backup time
+    stopwatchTime: { type: Number, default: 0 }, // NEW: Stopwatch backup time
 
     status: {
       type: String,

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // 👈 1. Naya Import Add kiya
+import { useNavigate } from "react-router-dom"; // 1. Naya Import Add kiya
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +11,7 @@ function Navbar() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const STRENGTH = 0.35;
 
-  const navigate = useNavigate(); // 👈 2. Router ka Hook initialize kiya
+  const navigate = useNavigate(); // 2. Router ka Hook initialize kiya
 
   useEffect(() => {
     const onScroll = () => {
@@ -44,7 +44,7 @@ function Navbar() {
     }
   };
 
-  // 👇 3. Yahan 'window.location.href' ko hata kar 'navigate' laga diya hai
+  // 3. Yahan 'window.location.href' ko hata kar 'navigate' laga diya hai
   const navigateToSignup = () => {
     navigate("/signup"); 
     setIsOpen(false); // Mobile menu auto-close
@@ -62,55 +62,54 @@ function Navbar() {
         {/* LOGO */}
         <div
           onClick={() => handleScroll("hero-section")}
-          style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-          className={`cursor-pointer text-2xl font-black tracking-tighter select-none transition-all duration-300 text-slate-800 ${
+          className={`cursor-pointer text-xl md:text-2xl font-cinzel font-bold tracking-wider select-none transition-all duration-300 ${
             scrolled
-              ? "opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto md:bg-white md:text-black md:rounded-2xl md:px-4 md:py-1.5 md:shadow-lg"
-              : "opacity-100"
+              ? "opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto md:bg-black/85 md:text-white md:border md:border-zinc-800 md:rounded-2xl md:px-4 md:py-1.5 md:shadow-[0_10px_30px_rgba(0,0,0,0.8)] md:backdrop-blur-md"
+              : "opacity-100 text-white"
           }`}
         >
-          <span className="inline-flex items-center gap-2">
-            <img src="/parkinson.svg" alt="Parkin-son Logo" className="w-6 h-6 object-contain" />
-            Parkin-son
+          <span className="inline-flex items-center gap-2.5">
+            <img src="/parkinson.svg" alt="Parkin'son Logo" className="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+            <span className="tracking-[0.1em]">Parkin'son</span>
           </span>
         </div>
         
         {/* Desktop Navigation & Actions */}
         <div
-          className={`hidden md:flex items-center gap-8 text-[14px] text-gray-700 transition-all duration-300 ${
+          className={`hidden md:flex items-center gap-8 text-[13px] uppercase tracking-widest font-cinzel text-zinc-400 transition-all duration-300 ${
             scrolled ? "opacity-0 pointer-events-none translate-y-[-10px]" : "opacity-100 translate-y-0"
           }`}
         >
           <span
             onClick={() => handleScroll("hero-section")}
-            className="cursor-pointer hover:text-black transition-colors"
+            className="cursor-pointer hover:text-white transition-colors"
           >
-            Home
+            Sanctum
           </span>
           <span
             onClick={() => handleScroll("features")}
-            className="cursor-pointer hover:text-black transition-colors"
+            className="cursor-pointer hover:text-white transition-colors"
           >
             Features
           </span>
           <span
             onClick={() => handleScroll("leaderboard-section")}
-            className="cursor-pointer hover:text-black transition-colors"
+            className="cursor-pointer hover:text-white transition-colors"
           >
-            More
+            Pantheon
           </span>
           <span
             onClick={navigateToLogin}
-            className="cursor-pointer hover:text-black transition-colors"
+            className="cursor-pointer hover:text-white transition-colors"
           >
             Login
           </span>
           
           <button 
             onClick={navigateToSignup}
-            className="flex items-center gap-1.5 px-5 py-2.5 bg-[#2B2B2B] hover:bg-[#1A1A1A] text-white text-[13px] transition-all cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-2 px-5 py-2 rounded-md bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-100 font-cinzel text-[12px] tracking-wider transition-all cursor-pointer whitespace-nowrap shadow-lg shadow-black/50"
           >
-            Signup <span className="text-base leading-none">&rarr;</span>
+            Initiate <span className="text-base leading-none">&rarr;</span>
           </button>
         </div>
         
@@ -119,7 +118,7 @@ function Navbar() {
           onClick={() => setIsOpen(true)}
           className={`md:hidden transition-all duration-300 p-2.5 rounded-full pointer-events-auto ${
             scrolled 
-              ? "bg-white/90 text-gray-800 backdrop-blur-md border border-gray-200 shadow-sm hover:bg-gray-50" 
+              ? "bg-zinc-900/90 text-white backdrop-blur-md border border-zinc-800 shadow-md hover:bg-zinc-800" 
               : "text-zinc-200 hover:text-white bg-transparent"
           }`}
         >
@@ -157,11 +156,11 @@ function Navbar() {
               <div className="flex flex-col gap-6 relative z-10">
                 <div className="flex items-center justify-between">
                   <div
-                    style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-                    className="text-xl font-black text-white tracking-tighter select-none flex items-center gap-2"
+                    style={{ fontFamily: "'Cinzel', Georgia, serif" }}
+                    className="text-xl font-cinzel font-bold text-white tracking-wider select-none flex items-center gap-2"
                   >
-                    <img src="/parkinson.svg" alt="Parkin-son Logo" className="w-5 h-5 object-contain" />
-                    <span>Parkin-son</span>
+                    <img src="/parkinson.svg" alt="Parkin'son Logo" className="w-5 h-5 object-contain drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]" />
+                    <span>Parkin'son</span>
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
@@ -171,46 +170,41 @@ function Navbar() {
                   </button>
                 </div>
                 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 font-cinzel text-xs tracking-wider">
                   <span
                     onClick={() => handleScroll("hero-section")}
-                    style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-                    className="cursor-pointer text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-3.5 transition-all duration-200 block shadow-inner"
+                    className="cursor-pointer font-medium text-zinc-300 hover:text-white bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3.5 transition-all duration-200 block shadow-inner"
                   >
-                    Home
+                    Sanctum
                   </span>
                   <span
                     onClick={() => handleScroll("features")}
-                    style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-                    className="cursor-pointer text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-3.5 transition-all duration-200 block shadow-inner"
+                    className="cursor-pointer font-medium text-zinc-300 hover:text-white bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3.5 transition-all duration-200 block shadow-inner"
                   >
                     Features
                   </span>
                   <span
                     onClick={() => handleScroll("leaderboard-section")}
-                    style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-                    className="cursor-pointer text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-3.5 transition-all duration-200 block shadow-inner"
+                    className="cursor-pointer font-medium text-zinc-300 hover:text-white bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3.5 transition-all duration-200 block shadow-inner"
                   >
-                    More
+                    Pantheon
                   </span>
                 </div>
               </div>
               
-              <div className="flex flex-col gap-3 mb-4 relative z-10">
+              <div className="flex flex-col gap-3 mb-4 relative z-10 font-cinzel">
                 <button 
                   onClick={navigateToLogin}
-                  style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-                  className="w-full text-center py-3 text-white font-medium rounded-xl border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] active:scale-[0.99] transition-all text-sm"
+                  className="w-full text-center py-3 text-zinc-300 hover:text-white font-medium rounded-xl border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] active:scale-[0.99] transition-all text-xs tracking-wider"
                 >
                   Login
                 </button>
                 
                 <button 
                   onClick={navigateToSignup}
-                  style={{ fontFamily: "'Instrument Sans', sans-serif" }}
-                  className="w-full text-center text-sm font-bold text-[#fafafa] uppercase px-4 py-2.5 rounded-lg border-2 border-[#fafafa] bg-[#252525] shadow-[2px_2px_#fafafa] cursor-pointer transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                  className="w-full text-center text-xs font-bold text-white uppercase tracking-wider px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 shadow-md cursor-pointer transition-all active:scale-[0.98]"
                 >
-                  Signup
+                  Initiate
                 </button>
               </div>
             </motion.div>

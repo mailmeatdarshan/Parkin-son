@@ -30,14 +30,14 @@ exports.signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 🔥 YAHAN PE EMAIL SE UNIQUE USERNAME NIKALA 🔥
+    // YAHAN PE EMAIL SE UNIQUE USERNAME NIKALA 
     const username = await generateUniqueUsername(email);
 
     const user = await usermodel.create({
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      username, // 🔥 AUR YAHAN PE DB ME SAVE KARAYA 🔥
+      username, // AUR YAHAN PE DB ME SAVE KARAYA 
       imageUrl,
       // Save crypto fields
       encryptedDEK_pwd,
@@ -63,7 +63,7 @@ exports.signup = async (req, res) => {
 
     await user.save();
     
-    // 🔥 NEW: Invalidate leaderboard cache so the new user appears immediately
+    // NEW: Invalidate leaderboard cache so the new user appears immediately
     invalidateCache("leaderboard_full");
     
     const token = jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -184,7 +184,7 @@ exports.verifyResetToken = async (req, res) => {
             return res.status(400).json({ message: "Token expired" });
         }
 
-        // 🔥 FIX: Return Crypto data so frontend can mathematically verify the Recovery Key!
+        // FIX: Return Crypto data so frontend can mathematically verify the Recovery Key!
         return res.status(200).json({
             message: "Token is valid",
             // Fallback to handle both old architecture and new architecture
@@ -267,7 +267,7 @@ exports.googleAuth = async (req, res) => {
         username: username, // <-- Yahan add ho gaya
       });
       
-      // 🔥 NEW: Invalidate cache for new Google user
+      // NEW: Invalidate cache for new Google user
       invalidateCache("leaderboard_full");
     }
     
@@ -276,7 +276,7 @@ exports.googleAuth = async (req, res) => {
       expiresIn: "7d",
     });
 
-    // 🔥 FIX 1: maxAge laga diya taaki cookie drop na ho (Same as Email Auth)
+    // FIX 1: maxAge laga diya taaki cookie drop na ho (Same as Email Auth)
     res.cookie("token", jwtToken, {
       httpOnly: true,
       sameSite: "none",
@@ -284,7 +284,7 @@ exports.googleAuth = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 Days
     });
 
-       // 🔥 THE FIX: user.crypto ke andar se keys nikalni hain!
+       // THE FIX: user.crypto ke andar se keys nikalni hain!
     return res.json({
       message: "Login successful",
       isNewUser: isNewUser,
@@ -426,13 +426,13 @@ exports.checkAuth = (req, res) => {
     res.status(200).json({ success: true, message: "Authorized" });
 };
 
-// 🔥 SETUP KEYS (Vault Creation) 🔥
+// SETUP KEYS (Vault Creation) 
 exports.setupKeys = async (req, res) => {
     try {
         const userId = req.userId || (req.user && req.user.id) || req.user;
         const { encryptedDEK_pwd, encryptedDEK_rec, userSalt, recoverySalt, pbkdf2Iterations, kdf } = req.body;
 
-        // 🔴 Strict Type Validation
+        // Strict Type Validation
         if (
             typeof encryptedDEK_pwd !== "object" ||
             typeof encryptedDEK_rec !== "object" ||
@@ -460,18 +460,18 @@ exports.setupKeys = async (req, res) => {
             pbkdf2Iterations,
             kdf: kdf || "PBKDF2",
             vaultVersion: 1,
-            lastVaultResetAt: Date.now() // 🔥 Yahan time update ho gaya
+            lastVaultResetAt: Date.now() // Yahan time update ho gaya
         };
 
         await user.save();
 
-        // 🚀 THE MAGIC FIX: Naya Token banao taaki Vault ke time se sync ho jaye
+        // THE MAGIC FIX: Naya Token banao taaki Vault ke time se sync ho jaye
         const jwt = require("jsonwebtoken"); // Ensure jwt is imported at top of file, wese hoga hi
         const jwtToken = jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET, {
             expiresIn: "7d",
         });
 
-        // 🔥 Nayi cookie bhej do jisse browser reload hone par fail na ho
+        // Nayi cookie bhej do jisse browser reload hone par fail na ho
         res.cookie("token", jwtToken, {
             httpOnly: true,
             sameSite: "none", 
@@ -486,7 +486,7 @@ exports.setupKeys = async (req, res) => {
     }
 }
 
-// 🔥 RESET VAULT KEYS (Recovery Key Flow) 🔥
+// RESET VAULT KEYS (Recovery Key Flow) 
 exports.resetVaultKeys = async (req, res) => {
     try {
         const userId = req.user.id || req.user;
@@ -592,7 +592,7 @@ exports.searchUsers = async (req, res) => {
     }
 };
 
-// 🔥 FOLLOW SYSTEM API
+// FOLLOW SYSTEM API
 exports.toggleFollow = async (req, res) => {
     try {
         const currentUserId = req.userId || (req.user && req.user.id) || req.user;
@@ -627,7 +627,7 @@ exports.toggleFollow = async (req, res) => {
     }
 };
 
-// 🔥 FETCH FOLLOWERS FOR POPUP MODAL
+// FETCH FOLLOWERS FOR POPUP MODAL
 exports.getFollowData = async (req, res) => {
     try {
         const user = await usermodel.findById(req.params.id)
@@ -640,7 +640,7 @@ exports.getFollowData = async (req, res) => {
     }
 };
 
-// 🔥 GET NOTIFICATIONS
+// GET NOTIFICATIONS
 exports.getNotifications = async (req, res) => {
     try {
         const userId = req.userId || (req.user && req.user.id) || req.user;
@@ -653,7 +653,7 @@ exports.getNotifications = async (req, res) => {
     }
 };
 
-// 🔥 MARK NOTIFICATIONS AS READ
+// MARK NOTIFICATIONS AS READ
 exports.markNotificationsRead = async (req, res) => {
     try {
         const userId = req.userId || (req.user && req.user.id) || req.user;

@@ -1,7 +1,7 @@
-# ⚡ Parkin-son — The Ultimate Deep Work & Focus Workspace
+# ⚡ Parkin'son — The Ultimate Deep Work & Focus Workspace
 
 > **Lock in, build streaks, and conquer your deep work sessions.**  
-> Parkin-son is a modern, high-performance focus workspace built for developers, students, and makers. Designed with sleek dark aesthetics, real-time session tracking, and a community focus arena.
+> Parkin'son is a modern, high-performance focus workspace built for developers, students, and makers. Designed with sleek dark aesthetics, real-time session tracking, and a community focus arena.
 
 ---
 
@@ -102,8 +102,8 @@ graph TD
 
 ### 1. Clone & Setup Repository
 ```bash
-git clone https://github.com/mailmeatdarshan/Parkin-son.git
-cd Parkin-son
+git clone https://github.com/mailmeatdarshan/Parkin'son.git
+cd Parkin'son
 ```
 
 ### 2. Configure Backend
@@ -173,7 +173,7 @@ npm run dev
 
 **Darshan Dubey**
 - **GitHub**: [@mailmeatdarshan](https://github.com/mailmeatdarshan)
-- **Project**: [Parkin-son](https://github.com/mailmeatdarshan/Parkin-son)
+- **Project**: [Parkin'son](https://github.com/mailmeatdarshan/Parkin'son)
 
 ---
 

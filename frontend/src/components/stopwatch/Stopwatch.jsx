@@ -4,10 +4,10 @@ import { Play, Pause, RotateCcw, Save, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { DitherButton } from "../dither-kit/button";
-import Sidebar from '../../components/Sidebar/Sidebar'; // 🔥 Import tera naya Sidebar component
+import Sidebar from '../../components/Sidebar/Sidebar'; // Import tera naya Sidebar component
 import { apiFetch } from '../../apiClient';
 
-// 🔥 THE ULTIMATE ZERO-RENDER STORE ENGINE (ATOMIC STATE) 🔥
+// THE ULTIMATE ZERO-RENDER STORE ENGINE (ATOMIC STATE) 
 function createStore(initialState) {
     const store = {
         state: initialState,
@@ -58,7 +58,7 @@ const COLORS = {
     borderHover: 'rgba(255, 255, 255, 0.18)',
 };
 
-// 💎 PREMIUM CARD STYLING 💎
+// PREMIUM CARD STYLING 
 const heavyCardStyle = {
     background: 'linear-gradient(180deg, #111111 0%, #000000 100%)', 
     border: `1px solid ${COLORS.border}`, 
@@ -121,7 +121,7 @@ const QuickStats = memo(() => {
     const totalDaytime = useStats(s => s.totalDaytime);
     const totalSessions = useStats(s => s.totalSessions);
 
-    // 🔥 FIX: Agar ek bhi session formally save nahi hua (0 sessions), toh timer ko completely ZERO (0) force kar do.
+    // FIX: Agar ek bhi session formally save nahi hua (0 sessions), toh timer ko completely ZERO (0) force kar do.
     const validDaytime = totalSessions === 0 ? 0 : totalDaytime;
 
     const hours = Math.floor(validDaytime / 3600);
@@ -139,7 +139,7 @@ const QuickStats = memo(() => {
                 
                 <div className="flex flex-row md:flex-col justify-between md:justify-start items-center md:items-start w-full mt-auto md:mt-0">
                     <div className="mb-0 md:mb-6 flex flex-col items-center md:items-start">
-                        {/* 🔥 Ab ye directly updated valid hours/minutes dikhayega */}
+                        {/* Ab ye directly updated valid hours/minutes dikhayega */}
                         <div className="text-2xl md:text-[38px] font-bold text-[#E0E0E0] tracking-tight leading-none">{hours}h {minutes}m</div>
                         <div className="text-[12px] md:text-[14px] text-[#A3A3A3] mt-2 font-medium">Focus Time</div>
                     </div>
@@ -202,7 +202,7 @@ const StrictModeToggle = memo(() => {
                     Strict Mode
                 </span>
                 
-                {/* 🔥 PURE CSS BRUTALIST SWITCH 🔥 */}
+                {/* PURE CSS BRUTALIST SWITCH */}
                 <label className="switch sw-10">
                     <input 
                         type="checkbox" 
@@ -353,7 +353,7 @@ const ResetButton = memo(() => {
     const handleReset = useCallback(() => {
         const state = timerStore.getState();
         
-        // 🔥 Send isReset: true explicitly to backend
+        // Send isReset: true explicitly to backend
         apiFetch("/api/session/stopwatch/stop", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -380,7 +380,7 @@ const ControlsBar = memo(() => (
     </div>
 ));
 
-// 🔥 ULTIMATE BACKGROUND WORKER ENGINE (Zero Lag, Zero Jump) 🔥
+// ULTIMATE BACKGROUND WORKER ENGINE (Zero Lag, Zero Jump) 
 const TimerEngine = memo(() => {
     const isRunning = useTimer(s => s.isRunning);
     
@@ -442,9 +442,9 @@ const SystemEffects = memo(() => {
         if (isRunning || time > 0) {
             const m = Math.floor(time / 60);
             const s = time % 60;
-            document.title = `(${Math.floor(m/10)}${m%10}:${Math.floor(s/10)}${s%10}) Parkin-son Focus`;
+            document.title = `(${Math.floor(m/10)}${m%10}:${Math.floor(s/10)}${s%10}) Parkin'son Focus`;
         } else {
-            document.title = 'Parkin-son | Focus';
+            document.title = "Parkin'son | Focus";
         }
     }, [isRunning, time]);
 

@@ -47,10 +47,10 @@ const userSchema = new Schema({
     },
         followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'userCredential' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'userCredential' }],
-    // 🔥 PROFILE FIELDS 🔥
+    // PROFILE FIELDS 
     about: {
         type: String,
-        default: "I am a new user, excited to join Parkin-son!"
+        default: "I am a new user, excited to join Parkin'son!"
     },
     links: [{
         platform: { 
@@ -64,7 +64,7 @@ const userSchema = new Schema({
         imageUrl: String
     }],
 
-    // 🔥 NESTED E2E CRYPTO FIELDS 🔥
+    // NESTED E2E CRYPTO FIELDS 
     crypto: {
         encryptedDEK_pwd: { type: Object }, // 🟢 IV and Data will be saved perfectly
         encryptedDEK_rec: { type: Object }, // 🟢 No more "[object Object]" corruption!

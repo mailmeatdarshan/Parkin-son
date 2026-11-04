@@ -14,7 +14,7 @@ const FeatureShowcase = () => {
       {/* Showcase Header */}
       <div className="flex flex-col items-center justify-center text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4 drop-shadow-md">
-          Everything you need with <span className="text-blue-500">Parkin-son.</span>
+          Everything you need with <span className="text-blue-500">Parkin'son.</span>
         </h2>
         <p className="text-slate-400 max-w-2xl text-lg">
           Experience a sleek, deeply integrated suite of tools designed to optimize your focus and track your progress flawlessly.

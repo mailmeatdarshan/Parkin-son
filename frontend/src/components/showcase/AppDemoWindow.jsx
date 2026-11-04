@@ -236,10 +236,10 @@ const MockAnalytics = () => {
             
 
 
-            {/* 🔥 FIX 1: pt-24 md:pt-8 (was pt-28 md:pt-16) */}
+            {/* FIX 1: pt-24 md:pt-8 (was pt-28 md:pt-16) */}
             <div className="w-full max-w-[1800px] mx-auto pl-2 md:pl-6 pr-2 md:pr-6 pt-4 flex flex-col gap-8 relative z-10">
                 
-                {/* 🔥 FIX 4: gap-2 pb-0 (was gap-4 pb-2) */}
+                {/* FIX 4: gap-2 pb-0 (was gap-4 pb-2) */}
                 <header className="w-full flex flex-col gap-2 pb-0 relative z-10">
                     <div className="w-full flex flex-row items-end justify-between">
                         <div className="flex flex-col">
@@ -269,7 +269,7 @@ const MockAnalytics = () => {
                     />
                 </header>
 
-                {/* 🔥 FIX 2: gap-6 md:gap-6 (was gap-8 md:gap-12) */}
+                {/* FIX 2: gap-6 md:gap-6 (was gap-8 md:gap-12) */}
                 <motion.main 
                     variants={containerVariants} 
                     initial="hidden" 
@@ -297,7 +297,7 @@ const MockAnalytics = () => {
                             </div>
                         </div>
                         
-                        {/* 🔥 FIX 3: h-[280px] md:h-[360px] p-4 pb-2 (was h-[360px] md:h-[460px] p-6 pb-4) */}
+                        {/* FIX 3: h-[280px] md:h-[360px] p-4 pb-2 (was h-[360px] md:h-[460px] p-6 pb-4) */}
                         <div className="w-full h-[280px] md:h-[360px] p-4 pb-2">
                             {!chartAnimReady ? (
                                 <BarChartSkeleton />
@@ -379,7 +379,7 @@ const AppDemoWindow = () => {
   // --- Profile State ---
   const activeDays = 25; 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
-  const [aboutText, setAboutText] = useState("I am a new user, excited to join Parkin-son!");
+  const [aboutText, setAboutText] = useState("I am a new user, excited to join Parkin'son!");
 
 
 function createStore(initialState) {
@@ -483,7 +483,7 @@ const QuickStats = memo(() => {
     const totalDaytime = useStats(s => s.totalDaytime);
     const totalSessions = useStats(s => s.totalSessions);
 
-    // 🔥 FIX: Agar ek bhi session formally save nahi hua (0 sessions), toh timer ko completely ZERO (0) force kar do.
+    // FIX: Agar ek bhi session formally save nahi hua (0 sessions), toh timer ko completely ZERO (0) force kar do.
     const validDaytime = totalSessions === 0 ? 0 : totalDaytime;
 
     const hours = Math.floor(validDaytime / 3600);
@@ -558,7 +558,7 @@ const StrictModeToggle = memo(() => {
                     Strict Mode
                 </span>
                 
-                {/* 🔥 PURE CSS BRUTALIST SWITCH 🔥 */}
+                {/* PURE CSS BRUTALIST SWITCH */}
                 <label className="switch sw-10">
                     <input 
                         type="checkbox" 
@@ -687,7 +687,7 @@ const ResetButton = memo(() => {
     const handleReset = useCallback(() => {
         const state = timerStore.getState();
         
-        // 🔥 Send isReset: true explicitly to backend
+        // Send isReset: true explicitly to backend
         
         
         timerStore.setState({ isRunning: false, time: 0, sessionId: null });
@@ -709,7 +709,7 @@ const ControlsBar = memo(() => (
     </div>
 ));
 
-// 🔥 ULTIMATE BACKGROUND WORKER ENGINE (Zero Lag, Zero Jump) 🔥
+// ULTIMATE BACKGROUND WORKER ENGINE (Zero Lag, Zero Jump) 
 const TimerEngine = memo(() => {
     const isRunning = useTimer(s => s.isRunning);
     
@@ -771,9 +771,9 @@ const SystemEffects = memo(() => {
         if (isRunning || time > 0) {
             const m = Math.floor(time / 60);
             const s = time % 60;
-            document.title = `(${Math.floor(m/10)}${m%10}:${Math.floor(s/10)}${s%10}) Parkin-son Focus`;
+            document.title = `(${Math.floor(m/10)}${m%10}:${Math.floor(s/10)}${s%10}) Parkin'son Focus`;
         } else {
-            document.title = 'Parkin-son | Focus';
+            document.title = "Parkin'son | Focus";
         }
     }, [isRunning, time]);
 
@@ -921,7 +921,7 @@ const MainContainer = memo(({ children }) => {
 
 {/* ... baaki sab same rahega ... */}
                 
-                {/* 🔥 NAYA SIDEBAR COMPONENT YAHAN AAGAYA 🔥 */}
+                {/* NAYA SIDEBAR COMPONENT YAHAN AAGAYA */}
                 
                 
                 <MainContainer>
@@ -1254,7 +1254,7 @@ const renderMiniMonth = (year, monthIndex) => {
     return (
         <div className="h-screen w-full bg-[#1E1E1E] text-white flex flex-col font-sans overflow-hidden selection:bg-[#FF3B30]/30 relative">
             
-            {/* 🔥 NAYA SIDEBAR COMPONENT YAHAN AAGAYA */}
+            {/* NAYA SIDEBAR COMPONENT YAHAN AAGAYA */}
             
 
            <div className="flex flex-col md:flex-row items-center justify-between pl-[92px] md:pl-[100px] pr-4 md:pr-8 pt-[30px] pb-4 md:pb-5 shrink-0 bg-[#1E1E1E] gap-4 md:gap-0 z-10 relative min-h-[96px]">
@@ -1390,7 +1390,7 @@ const renderMiniMonth = (year, monthIndex) => {
                     )
                 })()}
 
-                {/* 🚀 APPLE STYLE "PARKIN-SON" TOUCH YEAR VIEW */}
+                {/* APPLE STYLE "Parkin'son" TOUCH YEAR VIEW */}
                 {calView === 'year' && (
                     <div className="flex-1 overflow-y-auto p-2 md:p-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-4 md:gap-8 min-h-0 pb-12">
                         {monthNames.map((month, idx) => (
@@ -1548,7 +1548,7 @@ const renderMiniMonth = (year, monthIndex) => {
       <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start flex-wrap">
         <div className="flex flex-col gap-5 items-center shrink-0 w-full md:w-[220px]">
           <div style={{ width: 180, height: 180, borderRadius: '50%', border: `2px solid ${COLORS.borderHover}`, backgroundColor: COLORS.profileCard, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-            <img src="/avatars/buttercup.webp" alt="Marcel" style={{ width: 180, height: 180, objectFit: 'cover' }} />
+            <img src="/avatars/parkinson.svg" alt="parkinson" style={{ width: 180, height: 180, objectFit: 'cover' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '12px 0', borderTop: `1px solid ${COLORS.border}`, borderBottom: `1px solid ${COLORS.border}`, width: '100%', justifyContent: 'center' }}>
@@ -1571,8 +1571,8 @@ const renderMiniMonth = (year, monthIndex) => {
         <div className="flex flex-col gap-3 max-w-[700px] flex-1 pt-0 md:pt-4 w-full">
           <div className="flex flex-col md:flex-row items-center md:items-start justify-between w-full flex-wrap gap-5">
             <div className="flex flex-col items-center md:items-start">
-              <h1 className="text-4xl md:text-[48px] font-bold tracking-tight text-gray-200 leading-tight">Marcel</h1>
-              <span className="text-gray-500 text-base font-medium mt-1">@marcel69</span>
+              <h1 className="text-4xl md:text-[48px] font-bold tracking-tight text-gray-200 leading-tight">Darshan</h1>
+              <span className="text-gray-500 text-base font-medium mt-1">userdarshan</span>
             </div>
             <div className="flex items-center justify-center gap-4 mt-2 md:mt-2.5 w-full md:w-auto">
               <div className="notif-bell"><Bell size={20} /></div>
@@ -1901,15 +1901,15 @@ const renderMiniMonth = (year, monthIndex) => {
       <div className="w-full max-w-6xl mx-auto px-4 z-20 relative drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         
         {/* Outer "Picture Frame" Border */}
-        <div className="w-full p-4 md:p-5 bg-white/30 backdrop-blur-lg rounded-[32px] md:rounded-[40px] shadow-[0_30px_60px_rgba(0,0,0,0.1)] border border-white/60">
+        <div className="w-full p-3 sm:p-4 md:p-5 bg-zinc-950/90 backdrop-blur-2xl rounded-[32px] md:rounded-[40px] shadow-[0_30px_90px_rgba(0,0,0,0.95)] border border-zinc-800/80">
           
           {/* Main Window Container */}
-          <div className="w-full h-[600px] md:h-[700px] bg-[#1e1e1e] rounded-[20px] md:rounded-[24px] border border-black/50 flex flex-col md:flex-row overflow-hidden shadow-inner relative">
+          <div className="w-full h-[600px] md:h-[700px] bg-[#121214] rounded-[20px] md:rounded-[24px] border border-zinc-800/80 flex flex-col md:flex-row overflow-hidden shadow-inner relative">
             
             {/* Sidebar (Mocked for Demo) */}
             <div className="w-full md:w-64 h-auto md:h-full bg-[#1e1e1e] border-b md:border-b-0 md:border-r border-white/5 flex flex-col pt-4 md:pt-8 pb-2 md:pb-6 px-3 md:px-4 shrink-0 z-20">
               <div className="px-4 mb-4 md:mb-10 hidden md:block">
-                <h2 className="text-xl font-bold text-white tracking-tight">Parkin-son</h2>
+                <h2 className="text-xl font-bold text-white tracking-tight">Parkin'son</h2>
               </div>
               <div className="flex flex-row md:flex-col gap-2 overflow-x-auto hide-scrollbar pb-2 md:pb-0 w-full items-center md:items-stretch">
                 <button 

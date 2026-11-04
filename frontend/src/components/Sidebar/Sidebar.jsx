@@ -245,11 +245,11 @@ const Sidebar = ({ activePage }) => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'space-between', marginTop: 8, marginBottom: 32, width: '100%', padding: isMobile ? '0 12px' : 0 }}>
                     {!isMobile ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <img src="/parkinson.svg" alt="Parkin-son Logo" style={{ width: 26, height: 26 }} />
-                            <span style={{ color: '#D1D5DB', fontSize: 22, fontWeight: 700, letterSpacing: '0.15em', fontFamily: "'Pixeloid', sans-serif" }}>Parkin-son</span>
+                            <img src="/parkinson.svg" alt="Parkin'son Logo" style={{ width: 26, height: 26 }} />
+                            <span style={{ color: '#D1D5DB', fontSize: 22, fontWeight: 700, letterSpacing: '0.15em', fontFamily: "'Pixeloid', sans-serif" }}>Parkin'son</span>
                         </div>
                     ) : (
-                        <img src="/parkinson.svg" alt="Parkin-son Logo" style={{ width: 28, height: 28 }} />
+                        <img src="/parkinson.svg" alt="Parkin'son Logo" style={{ width: 28, height: 28 }} />
                     )}
                     {isMobile ? (
                         <button onClick={() => setIsOpen(false)} style={{ padding: 8, color: '#6B7280', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%' }} className="hover:text-white hover:bg-white/10 transition-all">

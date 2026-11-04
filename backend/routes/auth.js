@@ -32,7 +32,7 @@ router.post("/signup", userValidationMiddleware(userValidSchema), loginLimiter, 
 router.post("/signin", userValidationMiddleware(userloginSchema), loginLimiter, authController.signin);
 router.post("/forgetPassword", userValidationMiddleware(forgetpasswordvalidatorSchemna), authController.forgetPassword);
 
-// 🔥 NEW ROUTE: Frontend yahan se token check karke recovery data fetch karega
+// NEW ROUTE: Frontend yahan se token check karke recovery data fetch karega
 router.get("/verify-reset-token/:token", authController.verifyResetToken);
 
 router.post("/reset-password/:token", userValidationMiddleware(resetPasswordSchema), authController.resetPassword);
@@ -40,9 +40,9 @@ router.post("/google-auth", userValidationMiddleware(googleAuthSchema), authCont
 
 router.get("/me", authMiddleware, authController.getProfile);
 
-// 👇 YAHI WOH ROUTE HAI JO ERROR FIX KAREGA
+// YAHI WOH ROUTE HAI JO ERROR FIX KAREGA
 router.get("/profile/:id", authController.getPublicProfile);
-// 👆
+// 
 
 router.get("/search", authController.searchUsers);
 
@@ -54,7 +54,7 @@ router.get("/follow-data/:id", authMiddleware, authController.getFollowData);
 router.get("/notifications", authMiddleware, authController.getNotifications);
 router.put("/notifications/read", authMiddleware, authController.markNotificationsRead);
 
-// 🌐 PUBLIC: Landing page real stats (no auth required)
+// PUBLIC: Landing page real stats (no auth required)
 router.get("/public-stats", async (req, res) => {
   try {
     const User = require("../models/users");

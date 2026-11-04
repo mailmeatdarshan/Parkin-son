@@ -4,7 +4,7 @@ const { mongoose } = require("../database/db");
 
 const User = require("../models/users");
 const dailysessionmodel = require("../models/daysession");
-const taskmodel = require("../models/tasks"); // 🔥 NEW: Task model import
+const taskmodel = require("../models/tasks"); // NEW: Task model import
 
 //------------------------------
 // 1. GET PROFILE STATS (WITH WORKSPACE TASK ACTIVITY)
@@ -18,10 +18,10 @@ router.get("/profile", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔥 Find all daySessionIds that have at least 1 task
+    // Find all daySessionIds that have at least 1 task
     const daySessionsWithTasks = await taskmodel.distinct("daySessionId", { userId });
 
-    // 🔥 Active day = time spent > 0 OR at least 1 task created
+    // Active day = time spent > 0 OR at least 1 task created
     const studyDays = await dailysessionmodel
       .find({ 
         userId, 
@@ -183,7 +183,7 @@ router.get("/weekly-chart", async (req, res) => {
         
         weeklyData.push({
           day: currentDate.toLocaleDateString("en-US", { weekday: "short" }),
-          // 🔥 FIX: toFixed(1) ki jagah toFixed(4) use kiya taaki 0.0525 jaisa exact data pass ho!
+          // FIX: toFixed(1) ki jagah toFixed(4) use kiya taaki 0.0525 jaisa exact data pass ho!
           hours: Number(totalHoursForDay.toFixed(4))
         });
     }
@@ -243,7 +243,7 @@ router.get("/heatmap", async (req, res) => {
       const dateKey = currentDate.toISOString().split("T")[0];
       const totalHours = sessionMap.get(dateKey) || 0;
       
-      // 🔥 FIX: yahan bhi toFixed(4) kar diya exact precision ke liye
+      // FIX: yahan bhi toFixed(4) kar diya exact precision ke liye
       const hours = Number(totalHours.toFixed(4));
 
       let intensity = 0;

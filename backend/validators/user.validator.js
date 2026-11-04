@@ -16,13 +16,13 @@ const userValidSchema = z
     authProvider: z.enum(["local", "google"]).default("local"),
     password: z
       .string()
-      // 🔥 Yahan se saare strict regex hata diye hain kyunki ye ab HASH receive karega (jo 64 chars ka hota hai)
+      // Yahan se saare strict regex hata diye hain kyunki ye ab HASH receive karega (jo 64 chars ka hota hai)
       .min(60, { message: "Invalid password hash length" }) 
       .max(100)
       .optional(),
     imageUrl: z.string().optional(),
 
-    // 🔥 Naye E2E fields taaki Zod inhe allow kare 🔥
+    // Naye E2E fields taaki Zod inhe allow kare 
     encryptedDEK_pwd: z.any().optional(),
     encryptedDEK_rec: z.any().optional(),
     userSalt: z.string().optional(),

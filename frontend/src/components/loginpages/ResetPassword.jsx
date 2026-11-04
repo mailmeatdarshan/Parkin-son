@@ -28,7 +28,7 @@ const ResetPassword = () => {
                 const data = await res.json();
                 if (res.ok && data.encryptedDEK_rec) {
                     setEncryptedDEKRec(data.encryptedDEK_rec);
-                    // 🔥 FIX: Yahan 'data.userSalt' ko hatakar 'data.recoverySalt' kar do
+                    // FIX: Yahan 'data.userSalt' ko hatakar 'data.recoverySalt' kar do
                     setOldSalt(data.recoverySalt); 
                     setOldIterations(data.pbkdf2Iterations);
                 }
@@ -122,18 +122,18 @@ const ResetPassword = () => {
             <ShaderBackground />
 
             <div className="min-h-screen w-full flex items-center justify-center p-4 relative z-10 overflow-hidden">
-                <div className={`w-full max-w-[420px] bg-[#030612]/95 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border-[1.5px] border-indigo-500/20 shadow-[0_0_80px_rgba(99,102,241,0.15)] relative overflow-hidden flex flex-col ${isFlipping ? 'animate-page-turn' : ''}`}>
+                <div className={`w-full max-w-[420px] bg-black/85 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border-[1.5px] border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative overflow-hidden flex flex-col ${isFlipping ? 'animate-page-turn' : ''}`}>
                     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[2.5rem]">
-                        <div className="absolute -top-[20%] -right-[10%] w-[80%] h-[80%] bg-indigo-600/20 rounded-full blur-[90px] mix-blend-screen"></div>
-                        <div className="absolute -bottom-[20%] -left-[10%] w-[70%] h-[70%] bg-blue-500/15 rounded-full blur-[90px] mix-blend-screen"></div>
-                        <div className="absolute top-[20%] left-[20%] w-[50%] h-[50%] bg-violet-500/10 rounded-full blur-[70px] mix-blend-screen"></div>
+                        <div className="absolute -top-[20%] -right-[10%] w-[80%] h-[80%] bg-white/10 rounded-full blur-[90px] mix-blend-screen"></div>
+                        <div className="absolute -bottom-[20%] -left-[10%] w-[70%] h-[70%] bg-zinc-400/10 rounded-full blur-[90px] mix-blend-screen"></div>
+                        <div className="absolute top-[20%] left-[20%] w-[50%] h-[50%] bg-zinc-500/5 rounded-full blur-[70px] mix-blend-screen"></div>
                     </div>
                     
                     <div className="absolute inset-0 opacity-[0.035] pointer-events-none mix-blend-screen rounded-[2.5rem]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 400 400%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
 
                     <div className="relative z-10 flex flex-col">
                         <div className="flex justify-center mb-6 mt-2">
-                            <span onClick={() => navigate('/')} className="text-white text-3xl md:text-[32px] font-black tracking-tighter drop-shadow-md select-none cursor-pointer hover:opacity-80 transition-opacity" style={{ fontFamily: "'Instrument Sans', sans-serif" }}>Parkin-son</span>
+                            <span onClick={() => navigate('/')} className="text-white text-3xl md:text-[32px] font-bold tracking-wider select-none cursor-pointer hover:opacity-80 transition-opacity font-cinzel" style={{ fontFamily: "'Cinzel', Georgia, serif" }}>Parkin-son</span>
                         </div>
 
                         <div className="text-center mb-6">

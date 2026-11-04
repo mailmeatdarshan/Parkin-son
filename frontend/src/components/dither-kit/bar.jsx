@@ -18,7 +18,7 @@ export function Bar({
   const ctx = useChartPart("Bar", "bar")
   const { registerSeries, unregisterSeries } = ctx
 
-  if (process.env.NODE_ENV !== "production" && !ctx.config[dataKey]) {
+  if (typeof process !== "undefined" && process.env?.NODE_ENV !== "production" && !ctx.config[dataKey]) {
     console.warn(
       `<Bar dataKey="${dataKey}" />: "${dataKey}" is not in the chart \`config\`. Add it so the series has a colour and label.`
     )

@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar/Sidebar'; 
 import { Trophy, Crown, Lock } from 'lucide-react'; 
 
-// 🔥 SWIPER.JS IMPORTS 
+// SWIPER.JS IMPORTS 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import { apiFetch } from '../apiClient';
 
-// 🔥 Premium, soft metallic accents
+// Premium, soft metallic accents
 const COLORS = {
     bg: '#0F0F0F',
     card: '#171717',
@@ -35,7 +35,7 @@ const formatXP = (seconds) => {
     return `${m}m`; 
 };
 
-// 🔥 Helper function for Name-based Background Colors
+// Helper function for Name-based Background Colors
 const getColorFromName = (name) => {
     const gradients = [
         'linear-gradient(135deg, #6366F1, #8B5CF6)',
@@ -51,7 +51,7 @@ const getColorFromName = (name) => {
     return gradients[Math.abs(hash) % gradients.length];
 };
 
-// 🌟 OPTIMIZATION: Avatar har table row me render hota hai, memo se unnecessary re-renders band
+// OPTIMIZATION: Avatar har table row me render hota hai, memo se unnecessary re-renders band
 const Avatar = memo(({ src, name, size = 32, style = {} }) => {
     const [error, setError] = useState(false);
     const initial = (name || 'U').charAt(0).toUpperCase();
@@ -101,7 +101,7 @@ const getAvatarUrl = (avatar, name) => {
 };
 
 // =======================================================
-// 🔥 COMPONENT: Clean & SUPER SMOOTH Top3 Stack (SAFARI OPTIMIZED)
+// COMPONENT: Clean & SUPER SMOOTH Top3 Stack (SAFARI OPTIMIZED)
 // =======================================================
 const Top3Stack = memo(({ top3Users, navigate }) => {
     if (!top3Users || top3Users.length < 3) return null;
@@ -186,7 +186,7 @@ const Top3Stack = memo(({ top3Users, navigate }) => {
     );
 });
 
-// ─── MODULE LEVEL: Static badge data ───
+// MODULE LEVEL: Static badge data 
 const ALL_BADGES = [
     { id: 'feather',   name: 'Feather',   description: 'Beginner',          requirement: 'Complete 24 hours on the app',        requiredDays: 1,   imageUrl: '/badges/firstlevel.webp'  },
     { id: 'shard',     name: 'Shard',     description: 'Growing Stronger',  requirement: 'Complete 10 days on the app',         requiredDays: 10,  imageUrl: '/badges/secondlevel.webp' },
@@ -201,7 +201,7 @@ const ALL_BADGES = [
 ];
 
 // =======================================================
-// 🔥 COMPONENT: Floating 3D Dialer Carousel
+// COMPONENT: Floating 3D Dialer Carousel
 // =======================================================
 const BadgeCarousel = memo(({ focusTime }) => {
     const [badgeData, setBadgeData] = useState({ activeDays: 0, totalFocusTime: focusTime || 0 });
@@ -311,7 +311,7 @@ const BadgeCarousel = memo(({ focusTime }) => {
 
 
 // =======================================================
-// 🔥 COMPONENT: Extracted Table to prevent main re-renders
+// COMPONENT: Extracted Table to prevent main re-renders
 // =======================================================
 const LeaderboardTable = memo(({ tableUsers, navigate }) => {
     if (!tableUsers || tableUsers.length === 0) return null;
@@ -489,7 +489,7 @@ const Leaderboard = () => {
                 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
                 .animate-fade-up { animation: fadeUp 0.35s ease forwards; }
 
-                /* 🔥 Hidden scrollbars for clean look */
+                /* Hidden scrollbars for clean look */
                 .main-content-wrapper::-webkit-scrollbar { display: none; }
                 .main-content-wrapper { -ms-overflow-style: none; scrollbar-width: none; }
 

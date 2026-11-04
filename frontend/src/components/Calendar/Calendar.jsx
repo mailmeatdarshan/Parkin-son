@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Gift, AlertCircle, Plus, Clock } from 'lucide-react';
 import { CalendarContext } from '../../context/CalendarNotificationProvider'; 
-import Sidebar from '../../components/Sidebar/Sidebar'; // 🔥 Import tera naya Sidebar component
+import Sidebar from '../../components/Sidebar/Sidebar'; // Import tera naya Sidebar component
 import { apiFetch } from '../../apiClient';
 
 const CurrentTimeLine = () => {
@@ -59,6 +59,12 @@ const Calendar = () => {
         }
     }, [selectedDate, view]);
 
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+    const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
     useEffect(() => {
         if (mobileStripRef.current && window.innerWidth < 768) {
             const firstDay = getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth());
@@ -76,12 +82,6 @@ const Calendar = () => {
             }
         }
     }, [selectedDate, currentDate, view]);
-
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-    const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-    const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
     const changeMonth = (offset) => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
@@ -329,7 +329,7 @@ const Calendar = () => {
         return { grid, totalWeeks };
     };
 
-    // 🚀 PREMIUM YEAR VIEW MINI GRID 
+    // PREMIUM YEAR VIEW MINI GRID 
     const renderMiniMonth = (year, monthIndex) => {
         const daysInMonth = getDaysInMonth(year, monthIndex);
         const firstDay = getFirstDayOfMonth(year, monthIndex);
@@ -402,7 +402,7 @@ const Calendar = () => {
     return (
         <div className="h-screen w-full bg-[#1E1E1E] text-white flex flex-col font-sans overflow-hidden selection:bg-[#FF3B30]/30 relative">
             
-            {/* 🔥 NAYA SIDEBAR COMPONENT YAHAN AAGAYA */}
+            {/* NAYA SIDEBAR COMPONENT YAHAN AAGAYA */}
             <Sidebar activePage="Calendar" />
 
            <div className="flex flex-col md:flex-row items-center justify-between pl-[92px] md:pl-[100px] pr-8 pt-[30px] pb-4 md:pb-5 shrink-0 bg-[#1E1E1E] gap-4 md:gap-0 z-10 relative min-h-[96px]">
@@ -539,7 +539,7 @@ const Calendar = () => {
                     )
                 })()}
 
-                {/* 🚀 APPLE STYLE "PARKIN-SON" TOUCH YEAR VIEW */}
+                {/* APPLE STYLE "Parkin'son" TOUCH YEAR VIEW */}
                 {view === 'year' && (
                     <div className="flex-1 overflow-y-auto p-2 md:p-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-4 md:gap-8 min-h-0 pb-12">
                         {monthNames.map((month, idx) => (

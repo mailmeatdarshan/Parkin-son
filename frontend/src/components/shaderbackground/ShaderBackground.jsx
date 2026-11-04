@@ -41,25 +41,24 @@ const FRAGMENT_SHADER = `
     vec2 rocketDir = vec2(tubeDir.x * 2.5, tubeDir.y / stretch);
     float dist = length(rocketDir);
     
-    // IMAGE-ACCURATE PREMIUM COLORS
-    vec3 color = vec3(0.0, 0.12, 0.85); // Rich Royal Blue Core
+    // LIQUID SILVER & PLATINUM CORE
+    vec3 color = vec3(0.82, 0.84, 0.88); // Luminous Polished Silver Core
     
-    // === DYNAMIC COLOR PUSH EFFECT ===
-    // Glass ki physical diagonal ridges ke sath mouse ki vertical speed (dir.y) ko joda hai.
-    // Jab tum vertical move karoge, Mint aur Purple colors ek dusre ko fiercely push karenge!
+    // === DYNAMIC SILVER / OBSIDIAN WAVE PUSH EFFECT ===
     float absoluteY = p.x * c + p.y * s;
     float phase = absoluteY * 8.0 - u_time * 0.05; 
     float colorPush = sin(phase * 6.28318 + dir.y * 12.0) * 0.2;
     
-    // Mint Green (Pushed dynamically by the wave)
-    float mintFactor = smoothstep(0.3 + colorPush, -1.2 + colorPush, dir.x);
-    color = mix(color, vec3(0.0, 0.85, 0.65), mintFactor);
+    // Brilliant Chrome / White-Silver highlight wave
+    float chromeFactor = smoothstep(0.3 + colorPush, -1.2 + colorPush, dir.x);
+    color = mix(color, vec3(0.96, 0.97, 1.0), chromeFactor * 0.8);
     
-    // Deep Purple (Pushed dynamically by the wave)
-    float purpleFactor = smoothstep(-0.3 + colorPush, 1.2 + colorPush, dir.x);
-    color = mix(color, vec3(0.4, 0.0, 0.95), purpleFactor);
+    // Smoked Titanium / Charcoal-Silver shadow wave
+    float shadowFactor = smoothstep(-0.3 + colorPush, 1.2 + colorPush, dir.x);
+    color = mix(color, vec3(0.30, 0.32, 0.36), shadowFactor * 0.7);
     
-    color = mix(color, vec3(0.0, 0.6, 1.0), exp(-dist * 2.5));
+    // Soft metallic platinum inner luminescence
+    color = mix(color, vec3(0.72, 0.75, 0.80), exp(-dist * 2.5));
 
     // ANIMATION SMOOTHNESS FIX
     float flow = sin(tubeDir.y * 3.0 - u_time * 1.5) * 0.5 + 0.5;
@@ -71,8 +70,8 @@ const FRAGMENT_SHADER = `
     
     float glow = exp(-dist * falloff) * intensity * pulse;
     
-    // PREMIUM NAVY BACKGROUND: Dark grey ki jagah deep indigo blue jisse blue light POP kare
-    vec3 ambient = vec3(0.03, 0.04, 0.08); 
+    // DEEP OBSIDIAN BLACK BACKGROUND (Pure dark foundation with subtle silver depth)
+    vec3 ambient = vec3(0.010, 0.010, 0.013); 
     
     return ambient + color * glow;
   }
@@ -85,7 +84,7 @@ const FRAGMENT_SHADER = `
     float frequency = 8.0;
     float softness = 1.0;
     float refraction = 4.0;
-    float aberration = 0.61;
+    float aberration = 0.05; // Tight monochromatic silver refraction without rainbow fringe
     float lightAngle = -90.0 * 3.14159 / 180.0;
     
     float highlightSoftness = 0.55; 
@@ -154,7 +153,7 @@ const FRAGMENT_SHADER = `
     float localLight = exp(-mouseDist * 1.5) * u_glow_intensity;
     float dynamicBoost = 1.0 + localLight * 0.8; 
 
-    vec3 highlightColor = vec3(0.55, 0.6, 0.65) * dynamicBoost;
+    vec3 highlightColor = vec3(0.90, 0.92, 0.96) * dynamicBoost; // Radiant silver specular edge
     finalColor += highlightColor * G;
 
     gl_FragColor = vec4(finalColor, 1.0);
