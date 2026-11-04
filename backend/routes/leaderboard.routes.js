@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
             // Fetch only required fields to save RAM, excluding heavy crypto fields
             const users = await User.find({}).select("name imageUrl avatar picture badges createdAt").lean();
         
-        // 🔥 FIX 1: IST ke hisaab se exact today ki date nikalenge
+        // FIX 1: IST ke hisaab se exact today ki date nikalenge
         const now = new Date();
         now.setHours(now.getHours() + 5);
         now.setMinutes(now.getMinutes() + 30);
@@ -131,7 +131,7 @@ router.get("/", async (req, res) => {
         });
 
         // ==========================================
-        // 3. 🔥 ULTIMATE TIE-BREAKER SORTING LOGIC 🔥
+        // 3. ULTIMATE TIE-BREAKER SORTING LOGIC 
         // ==========================================
         leaderboardData.sort((a, b) => {
             if (b.xp !== a.xp) return b.xp - a.xp; // Rule 1: XP

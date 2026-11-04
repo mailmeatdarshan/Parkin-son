@@ -103,7 +103,7 @@ router.post("/session/:id/resume", async (req, res) => {
   }
 });
 
-// 5. 🔥 FIX: COMPLETE WORKSPACE (Proper Sync on Save - ADDs time)
+// 5. FIX: COMPLETE WORKSPACE (Proper Sync on Save - ADDs time)
 router.patch("/day/:id/complete", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -147,7 +147,7 @@ router.get("/day/:daySessionId/sessions", async (req, res) => {
   }
 });
 
-// 7. 🔥 FIX: DELETE SINGLE SESSION (Proper Decrement)
+// 7. FIX: DELETE SINGLE SESSION (Proper Decrement)
 router.delete("/session/:id", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -210,7 +210,7 @@ router.post("/day/add", async (req, res) => {
   }
 });
 
-// 10. 🔥 FIX: PAUSE WORKSPACE SESSION (Perfect Incremental Add)
+// 10. FIX: PAUSE WORKSPACE SESSION (Perfect Incremental Add)
 router.patch("/session/:id/pause", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -240,7 +240,7 @@ router.patch("/session/:id/pause", async (req, res) => {
   }
 });
 
-// 11. 🔥 FIX: CAREFUL RESET ROUTE
+// 11. FIX: CAREFUL RESET ROUTE
 router.delete("/day/:id/sessions/reset", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -269,7 +269,7 @@ router.delete("/day/:id/sessions/reset", async (req, res) => {
 });
 
 // ==========================================
-// 🔥 ZERO-WASTE SECURE STOPWATCH ROUTES 🔥
+// ZERO-WASTE SECURE STOPWATCH ROUTES 
 // ==========================================
 
 // 12. START STOPWATCH
@@ -295,7 +295,7 @@ router.post("/stopwatch/start", async (req, res) => {
         for (let r of runningSessions) {
             const d = Math.floor((new Date() - r.startTime) / 1000);
             
-            // 🔥 FIX: Only add to stopwatchTime if this session was created by Stopwatch!
+            // FIX: Only add to stopwatchTime if this session was created by Stopwatch!
             const incQuery = { totalDaytime: d };
             if (r.source === "stopwatch") {
                 incQuery.stopwatchTime = d;
@@ -405,7 +405,7 @@ router.post("/stopwatch/stop", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-// 14. 🔥 FIX: GET TODAY'S STATS (Only Stopwatch Time!)
+// 14. FIX: GET TODAY'S STATS (Only Stopwatch Time!)
 router.get("/stopwatch/today-stats", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -421,7 +421,7 @@ router.get("/stopwatch/today-stats", async (req, res) => {
 
     res.status(200).json({ 
         success: true, 
-        // 🔥 FIX: Ab ye sirf aur sirf stopwatchTime bhejega, workspace ka nahi!
+        // FIX: Ab ye sirf aur sirf stopwatchTime bhejega, workspace ka nahi!
         totalDaytime: daySession.stopwatchTime || 0, 
         totalSessions: daySession.totalSessions || 0 
     });

@@ -9,14 +9,14 @@ const userValidationMiddleware = require("../middleware/uservalidation");
 const { calendarEventSchema } = require("../validators/calendarValidator"); 
 const { getEvents, addEvent, updateEvent, deleteEvent } = require("../controller/calendar.controller.js");
 
-// 🔴 AUTH MIDDLEWARE: Ye route sirf tabhi chalega jab user Login hoga
+// AUTH MIDDLEWARE: Ye route sirf tabhi chalega jab user Login hoga
 router.use(authMiddleware);
 
 // 🟢 GET aur DELETE routes
 router.get("/", getEvents);
 router.delete("/:id", deleteEvent);
 
-// 🛡️ POST aur PUT routes (Yahan userValidationMiddleware ka sahi naam use kiya hai)
+// POST aur PUT routes (Yahan userValidationMiddleware ka sahi naam use kiya hai)
 router.post("/", userValidationMiddleware(calendarEventSchema), addEvent);
 router.put("/:id", userValidationMiddleware(calendarEventSchema), updateEvent);
 
