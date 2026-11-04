@@ -8,9 +8,9 @@ export const useCrypto = () => {
 
 export const CryptoProvider = ({ children }) => {
     const [dek, setDekState] = useState(null);
-    const [isRestoring, setIsRestoring] = useState(true); // 🔥 Page load par pehle session check karega
+    const [isRestoring, setIsRestoring] = useState(true); // Page load par pehle session check karega
 
-    // 🔥 CUSTOM SETTER: Ye Key ko SessionStorage me save karega taaki Refresh par data na ude!
+    // CUSTOM SETTER: Ye Key ko SessionStorage me save karega taaki Refresh par data na ude!
     const setDek = useCallback(async (key, keepUnlocked = true) => {
         setDekState(key);
         if (key && keepUnlocked) {
@@ -27,7 +27,7 @@ export const CryptoProvider = ({ children }) => {
         }
     }, []);
 
-    // 🔥 AUTO-RESTORE: Page Refresh hote hi Session se wapas Key nikalega
+    // AUTO-RESTORE: Page Refresh hote hi Session se wapas Key nikalega
     useEffect(() => {
         const restoreKey = async () => {
             const savedKey = sessionStorage.getItem("workspace_dek");

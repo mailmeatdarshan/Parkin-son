@@ -27,7 +27,7 @@ const ALL_BADGES = [
     { id: 'crowned',   name: 'Crowned',   description: "Honorable", requirement: 'Stay consistent for 12 months and 1 day', requiredDays: 366, imageUrl: '/badges/lastlevel.webp' },
 ];
 
-// 🔥 Helper function for Name-based Background Colors
+//  Helper function for Name-based Background Colors
 const getColorFromName = (name) => {
     const gradients = [
         'linear-gradient(135deg, #6366F1, #8B5CF6)',
@@ -46,7 +46,7 @@ const getColorFromName = (name) => {
     return gradients[Math.abs(hash) % gradients.length];
 };
 
-// 🔥 Safe Avatar Component with First Letter Fallback
+//  Safe Avatar Component with First Letter Fallback
 const Avatar = ({ src, name, size = 32, style = {} }) => {
     const [error, setError] = useState(false);
     const initial = (name || 'U').charAt(0).toUpperCase();
@@ -278,7 +278,7 @@ const Profile = () => {
         setShowShareToast(true); setTimeout(() => setShowShareToast(false), 2500);
     };
 
-    // 🔥 FOLLOW LOGIC
+    //  FOLLOW LOGIC
     const handleToggleFollow = async () => {
         if (!currentUser || !user) return;
         setIsFollowLoading(true);
@@ -301,7 +301,7 @@ const Profile = () => {
         }
     };
 
-    // 🔥 OPEN FOLLOWERS/FOLLOWING MODAL
+    // OPEN FOLLOWERS/FOLLOWING MODAL
     const openFollowModal = async (type) => {
         setFollowModalData({ isOpen: true, type, users: [], isLoading: true });
         try {
@@ -385,7 +385,7 @@ const Profile = () => {
         </div>
     );
 
-    // 🔥 Fallback UI / Broken Link Fix (Blue Screen Hatane Ke Liye)
+    // Fallback UI / Broken Link Fix (Blue Screen Hatane Ke Liye)
     if (!loading && !user) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg, color: COLORS.textPrimary }}>
@@ -453,7 +453,7 @@ const Profile = () => {
     .badge-card.locked { background: rgba(20, 24, 54, 0.2); box-shadow: 8px 12px 32px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.1), inset -1px -1px 4px rgba(0, 0, 0, 0.2); }
     .badge-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 8px 16px 40px rgba(0, 0, 0, 0.4), inset 1px 1px 2px rgba(255, 255, 255, 0.15), inset -1px -1px 4px rgba(0, 0, 0, 0.2); }
 
-    /* 🔥 Hover Top-to-Bottom Shine Effect 🔥 */
+    /* Hover Top-to-Bottom Shine Effect */
     .badge-card::before {
         content: '';
         position: absolute;
@@ -537,7 +537,7 @@ const Profile = () => {
                                 {/* LEFT COLUMN: AVATAR, LINKS, FOLLOW STATS */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', flexShrink: 0, width: 220 }}>
                                     <div style={{ width: 180, height: 180, borderRadius: '50%', border: `2px solid ${COLORS.borderHover}`, backgroundColor: COLORS.card, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-                                        {/* 🔥 Main Profile Image using Avatar component */}
+                                        {/* Main Profile Image using Avatar component */}
                                         <Avatar src={user.imageUrl || user.avatar} name={user.name} size={180} />
                                     </div>
                                     
@@ -615,7 +615,7 @@ const Profile = () => {
                                         {/* SEARCH, NOTIFICATIONS, BACK */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 10 }}>
                                             
-                                            {/* 🔥 NOTIFICATION BELL */}
+                                            {/* NOTIFICATION BELL */}
                                             {!isPublicView && (
                                                 <div ref={notifRef} style={{ position: 'relative' }}>
                                                     <button className="notif-bell" onClick={handleNotificationsOpen}>
@@ -694,14 +694,14 @@ const Profile = () => {
                                             </div>
                                         ) : (
                                             <p style={{ color: COLORS.textSecondary, fontSize: 16, lineHeight: 1.7, fontWeight: 400, backgroundColor: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.03)', padding: 20, borderRadius: 16, minHeight: 167, boxSizing: 'border-box' }}>
-                                                {user.about || "This user hasn't written a bio yet. They are too busy staying Locked In with Parkin-son."}
+                                                {user.about || "This user hasn't written a bio yet. They are too busy staying Locked In with Parkin'son."}
                                             </p>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* 🔥 RESTORED ACHIEVEMENT BADGES SECTION 🔥 */}
+                            {/* RESTORED ACHIEVEMENT BADGES SECTION */}
                             <div style={{ height: 1, width: '100%', background: `linear-gradient(to right, ${COLORS.border}, transparent)` }}></div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

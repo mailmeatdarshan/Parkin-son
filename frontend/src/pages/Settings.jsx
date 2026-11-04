@@ -12,7 +12,7 @@ const AVATARS = [
     "/avatars/henry.webp"
 ];
 
-// 🔥 10 COMPLETELY UNIQUE FONTS!
+// 10 COMPLETELY UNIQUE FONTS!
 const FONTS = [
     { id: 'Inter', name: 'Inter', desc: 'Clean & modern' },
     { id: 'Playfair', name: 'Playfair', desc: 'Elegant editorial' },
@@ -35,7 +35,7 @@ const THEME = {
 };
 
 const SETTINGS_CSS = `
-    /* 🔥 DIRECT GOOGLE FONTS IMPORT FOR ALL NEW UNIQUE FONTS */
+    /* DIRECT GOOGLE FONTS IMPORT FOR ALL NEW UNIQUE FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Righteous&family=Space+Mono:wght@700&family=Cinzel:wght@700&family=Bangers&family=Caveat:wght@700&family=Chakra+Petch:wght@600&display=swap');
 
     /* LOCAL FONTS */
@@ -169,9 +169,9 @@ const SETTINGS_CSS = `
     }
 `;
 
-// ═══════════════════════════════════════════════════
+// 
 // COMPONENTS
-// ═══════════════════════════════════════════════════
+// 
 
 const Badge = memo(({ text }) => (
     <span style={{
@@ -228,7 +228,7 @@ const SettingRow = memo(({ title, description, children, isLast = false }) => (
     </div>
 ));
 
-// 🔥 10 PREVIEWS MAPPED PERFECTLY
+// 10 PREVIEWS MAPPED PERFECTLY
 const FontCard = memo(({ selected, onClick, font }) => (
     <div 
         className={`premium-card w-full aspect-square md:w-[160px] md:h-[160px] ${selected ? 'selected' : ''}`}
@@ -345,9 +345,9 @@ const ActionButton = memo(({ onClick, children, danger = false, disabled = false
     </button>
 ));
 
-// ═══════════════════════════════════════════════════
+// 
 // MAIN COMPONENT
-// ═══════════════════════════════════════════════════
+// 
 const Settings = () => {
     const navigate = useNavigate();
     const { 

@@ -2,30 +2,36 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { apiFetch } from '../../apiClient';
 
-// 🔥 Global cache: Backend auth check sirf ek baar hoga, har page change pe nahi
+// Global cache: Backend auth check sirf ek baar hoga, har page change pe nahi
 let cachedAuthResult = null; // { authenticated: true/false, timestamp: number }
 const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minute cache — re-verify after 5 min
 
 const ProtectedRoute = ({ children }) => {
-    // 🛡️ FAST SYNCHRONOUS CHECK:
+    // FAST SYNCHRONOUS CHECK:
     // auth_token localStorage me reliably save hota hai login/signup ke time
-    const hasToken = !!localStorage.getItem("auth_token");
-    
-    // Agar token hi nahi hai, user definitely logged out hai
-    if (!hasToken) {
-        return <Navigate to="/login" replace />;
-    }
+    const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem("auth_token") : false;
 
-    // 🔥 Check cache first — avoid unnecessary /me calls
-    const now = Date.now();
-    const cacheValid = cachedAuthResult 
-        && cachedAuthResult.authenticated 
-        && (now - cachedAuthResult.timestamp) < AUTH_CACHE_TTL;
+    // Check cache first — avoid unnecessary /me calls
+    const [cacheValid] = useState(() => {
+        const now = Date.now();
+        return (
+            hasToken &&
+            cachedAuthResult &&
+            cachedAuthResult.authenticated &&
+            (now - cachedAuthResult.timestamp) < AUTH_CACHE_TTL
+        );
+    });
 
-    const [isAuthenticated, setIsAuthenticated] = useState(cacheValid ? true : false);
-    const [isLoading, setIsLoading] = useState(cacheValid ? false : true);
+    const [isAuthenticated, setIsAuthenticated] = useState(cacheValid);
+    const [isLoading, setIsLoading] = useState(!cacheValid && hasToken);
 
     useEffect(() => {
+        if (!hasToken) {
+            setIsAuthenticated(false);
+            setIsLoading(false);
+            return;
+        }
+
         // Agar cache valid hai, skip backend call
         if (cacheValid) return;
 
@@ -36,7 +42,7 @@ const ProtectedRoute = ({ children }) => {
                     credentials: 'include' 
                 });
                 
-                // 🔥 429 (Rate Limited) = user IS authenticated, server is just busy
+                // 429 (Rate Limited) = user IS authenticated, server is just busy
                 // Don't kick the user out for rate limiting!
                 if (response.status === 429) {
                     cachedAuthResult = { authenticated: true, timestamp: Date.now() };
@@ -90,7 +96,7 @@ const ProtectedRoute = ({ children }) => {
     return children;
 };
 
-// 🔥 Export cache invalidator for logout
+// Export cache invalidator for logout
 export const clearAuthCache = () => { cachedAuthResult = null; };
 
 export default ProtectedRoute;
