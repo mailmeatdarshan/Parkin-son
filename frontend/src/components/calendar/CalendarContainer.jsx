@@ -23,6 +23,7 @@ import {
   isSameDay,
 } from '../../utils/calendarLayout';
 import { useCrypto } from '../../context/CryptoContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const MONTH_NAMES = [
   'January',
@@ -41,6 +42,7 @@ const MONTH_NAMES = [
 
 const CalendarContainer = () => {
   const { isLocked, encryptData, decryptData } = useCrypto();
+  const { calendarYearHeatmap } = useSettings();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('week'); // 'day' | 'week' | 'month' | 'year'
@@ -50,6 +52,28 @@ const CalendarContainer = () => {
   const [unscheduledTasks, setUnscheduledTasks] = useState([]);
   const [decryptedTitles, setDecryptedTitles] = useState({});
   const [loading, setLoading] = useState(false);
+  const [heatmapData, setHeatmapData] = useState([]);
+
+  // Fetch heatmap data for Year View when enabled
+  useEffect(() => {
+    if (view !== 'year' || !calendarYearHeatmap) return;
+    let isMounted = true;
+    const fetchHeatmap = async () => {
+      try {
+        const res = await apiFetch('/api/dashboard/heatmap', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data?.heatmapData) {
+            setHeatmapData(data.heatmapData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching calendar year heatmap data:', err);
+      }
+    };
+    fetchHeatmap();
+    return () => { isMounted = false; };
+  }, [view, calendarYearHeatmap]);
 
   // Decrypt titles whenever tasks or unscheduledTasks update
   useEffect(() => {
@@ -568,6 +592,21 @@ const CalendarContainer = () => {
             </button>
           </div>
 
+          {/* Year View Heatmap Status Pill */}
+          {view === 'year' && (
+            <div 
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono border transition-all ${
+                calendarYearHeatmap 
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' 
+                  : 'bg-[#121212] text-neutral-400 border-white/[0.08]'
+              }`}
+              title={calendarYearHeatmap ? "Heatmap is enabled in Settings" : "Heatmap is disabled in Settings"}
+            >
+              <span className={`w-2 h-2 rounded-full ${calendarYearHeatmap ? 'bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-neutral-600'}`} />
+              <span>Heatmap {calendarYearHeatmap ? 'ON' : 'OFF'}</span>
+            </div>
+          )}
+
           {/* Arrange Tasks Toggle */}
           <button
             onClick={() => setIsArrangeOpen(!isArrangeOpen)}
@@ -655,6 +694,8 @@ const CalendarContainer = () => {
               currentDate={currentDate}
               selectedDate={selectedDate}
               tasks={tasks}
+              heatmapEnabled={calendarYearHeatmap}
+              heatmapData={heatmapData}
               onTaskMove={handleTaskMove}
               onSelectMonth={(monthIndex) => {
                 setCurrentDate(new Date(currentDate.getFullYear(), monthIndex, 1));

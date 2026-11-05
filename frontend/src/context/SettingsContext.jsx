@@ -7,6 +7,15 @@ export const SettingsProvider = ({ children }) => {
     const [fontFamily, setFontFamily] = useState(() => localStorage.getItem('app_fontFamily') || 'Inter');
     const [fontSizeMultiplier, setFontSizeMultiplier] = useState(() => parseFloat(localStorage.getItem('app_fontSize')) || 1);
     const [textBrightness, setTextBrightness] = useState(() => parseFloat(localStorage.getItem('app_textBrightness')) || 1);
+    const [calendarYearHeatmap, setCalendarYearHeatmapState] = useState(() => localStorage.getItem('app_calendarYearHeatmap') === 'true');
+
+    const setCalendarYearHeatmap = (val) => {
+        setCalendarYearHeatmapState((prev) => {
+            const nextVal = typeof val === 'function' ? val(prev) : !!val;
+            localStorage.setItem('app_calendarYearHeatmap', nextVal ? 'true' : 'false');
+            return nextVal;
+        });
+    };
 
     useEffect(() => {
         localStorage.setItem('app_fontFamily', fontFamily);
@@ -64,7 +73,8 @@ export const SettingsProvider = ({ children }) => {
         <SettingsContext.Provider value={{
             fontFamily, setFontFamily,
             fontSizeMultiplier, setFontSizeMultiplier,
-            textBrightness, setTextBrightness
+            textBrightness, setTextBrightness,
+            calendarYearHeatmap, setCalendarYearHeatmap
         }}>
             {children}
         </SettingsContext.Provider>

@@ -345,6 +345,30 @@ const ActionButton = memo(({ onClick, children, danger = false, disabled = false
     </button>
 ));
 
+const ToggleSwitch = memo(({ enabled, onChange, label }) => (
+    <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        onClick={() => onChange(!enabled)}
+        className="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border border-white/[0.1] transition-all duration-200 ease-in-out focus:outline-none p-0.5"
+        style={{
+            backgroundColor: enabled ? '#3B82F6' : '#222222',
+            boxShadow: enabled ? '0 0 14px rgba(59, 130, 246, 0.4)' : 'none',
+        }}
+        title={label || (enabled ? 'Enabled' : 'Disabled')}
+    >
+        <span
+            aria-hidden="true"
+            className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out"
+            style={{
+                transform: enabled ? 'translateX(20px)' : 'translateX(2px)',
+                marginTop: '1px'
+            }}
+        />
+    </button>
+));
+
 // 
 // MAIN COMPONENT
 // 
@@ -353,7 +377,8 @@ const Settings = () => {
     const { 
         fontFamily, setFontFamily, 
         fontSizeMultiplier, setFontSizeMultiplier, 
-        textBrightness, setTextBrightness 
+        textBrightness, setTextBrightness,
+        calendarYearHeatmap, setCalendarYearHeatmap 
     } = useSettings();
 
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
@@ -488,8 +513,9 @@ const Settings = () => {
         setFontFamily('Inter');
         setFontSizeMultiplier(1);
         setTextBrightness(1);
+        setCalendarYearHeatmap(false);
         showToast("Layout reset to default!");
-    }, [setFontFamily, setFontSizeMultiplier, setTextBrightness, showToast]);
+    }, [setFontFamily, setFontSizeMultiplier, setTextBrightness, setCalendarYearHeatmap, showToast]);
 
     const handleNameChange = useCallback((e) => setProfile(p => ({ ...p, name: e.target.value })), []);
     const handleEmailChange = useCallback((e) => setProfile(p => ({ ...p, email: e.target.value })), []);
@@ -583,6 +609,38 @@ const Settings = () => {
                             <ActionButton onClick={toggleFullscreen}>
                                 Toggle Fullscreen
                             </ActionButton>
+                        </SettingRow>
+                    </SettingBlock>
+
+                    <SettingBlock 
+                        title="Calendar Preferences" 
+                        description="Configure visual modes and activity insights for your calendar views."
+                    >
+                        <SettingRow 
+                            title={
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>Year View Activity Heatmap</span>
+                                    <Badge text="Visualizer" />
+                                </div>
+                            }
+                            description={
+                                <span>Color-code each day on the Year view based on task workload and focus sessions to see how busy your whole year was.</span>
+                            }
+                            isLast={true}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="text-[12px] font-semibold text-[#8A8A8A] font-mono">
+                                    {calendarYearHeatmap ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <ToggleSwitch 
+                                    enabled={calendarYearHeatmap} 
+                                    onChange={(val) => {
+                                        setCalendarYearHeatmap(val);
+                                        showToast(val ? "Year view heatmap enabled!" : "Year view heatmap disabled!");
+                                    }} 
+                                    label="Toggle calendar year heatmap"
+                                />
+                            </div>
                         </SettingRow>
                     </SettingBlock>
 
