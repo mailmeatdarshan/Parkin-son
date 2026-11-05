@@ -1,11 +1,12 @@
-import React, { useEffect, useCallback, memo, useSyncExternalStore } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, RotateCcw, Save, Target } from 'lucide-react';
+import { Play, Pause, RotateCcw, Save, Target, ChevronDown, Check, X, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { DitherButton } from "../dither-kit/button";
 import Sidebar from '../../components/Sidebar/Sidebar'; // Import tera naya Sidebar component
 import { apiFetch } from '../../apiClient';
+import { useCrypto } from '../../context/CryptoContext';
 
 // THE ULTIMATE ZERO-RENDER STORE ENGINE (ATOMIC STATE) 
 function createStore(initialState) {
@@ -30,8 +31,8 @@ function createStore(initialState) {
     return store;
 }
 
-const timerStore = createStore({ isRunning: false, time: 0, taskName: "", strictMode: false, sessionId: null });
-const statsStore = createStore({ totalDaytime: 0, totalSessions: 0 }); 
+const timerStore = createStore({ isRunning: false, time: 0, taskName: "", selectedTaskId: null, strictMode: false, sessionId: null, showSaveModal: false });
+const statsStore = createStore({ totalDaytime: 0, totalSessions: 0, todaySessions: [] }); 
 const toastStore = createStore({ toasts: [] }); 
 
 const useTimer = (selector) => useSyncExternalStore((l) => timerStore.subscribe(l), () => selector(timerStore.getState()));
@@ -117,19 +118,99 @@ const Header = memo(() => (
     </div>
 ));
 
+const TodaySessionsList = memo(() => {
+    const todaySessions = useStats(s => s.todaySessions);
+
+    const formatSessionDuration = (secs) => {
+        if (!secs || secs === 0) return '0s';
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        if (m > 0) return `${m}m ${s > 0 ? `${s}s` : ''}`;
+        return `${s}s`;
+    };
+
+    const formatSessionTime = (isoString) => {
+        if (!isoString) return '';
+        try {
+            const d = new Date(isoString);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return '';
+        }
+    };
+
+    return (
+        <div className="hidden lg:flex w-full rounded-[32px] p-6 md:p-7 flex-col relative flex-1 min-h-[220px]" style={heavyCardStyle}>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[10px] md:text-[12px] font-bold tracking-[0.15em] text-[#E0E0E0] uppercase" style={capsuleStyle}>
+                    Today's Sessions
+                </h3>
+                {todaySessions.length > 0 && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-[#0A84FF] border border-blue-500/20">
+                        {todaySessions.length}
+                    </span>
+                )}
+            </div>
+
+            {todaySessions.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={heavyInputStyle}>
+                        <Clock size={22} strokeWidth={1.5} className="text-[#737373]" />
+                    </div>
+                    <h4 className="text-[#E0E0E0] font-semibold text-[14px] mb-1">No Sessions Logged Yet</h4>
+                    <p className="text-[12px] text-[#A3A3A3] leading-relaxed max-w-[200px]">
+                        Save your timer to record your completed focus intervals here.
+                    </p>
+                </div>
+            ) : (
+                <div className="flex-1 overflow-y-auto max-h-[190px] pr-1 flex flex-col gap-2 hide-scrollbar">
+                    {todaySessions.map((s, idx) => (
+                        <div 
+                            key={s._id || idx}
+                            className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] transition-all"
+                        >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-[13px] font-medium text-neutral-200 truncate leading-snug">
+                                        {s.taskName || "Focus Session"}
+                                    </span>
+                                    <span className="text-[10px] text-neutral-500 font-mono mt-0.5">
+                                        {formatSessionTime(s.createdAt || s.endTime)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <span className="text-[11px] font-mono font-bold text-blue-400/90 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 shrink-0">
+                                {formatSessionDuration(s.duration)}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+});
+
 const QuickStats = memo(() => {
     const totalDaytime = useStats(s => s.totalDaytime);
     const totalSessions = useStats(s => s.totalSessions);
 
-    // FIX: Agar ek bhi session formally save nahi hua (0 sessions), toh timer ko completely ZERO (0) force kar do.
-    const validDaytime = totalSessions === 0 ? 0 : totalDaytime;
-
-    const hours = Math.floor(validDaytime / 3600);
-    const minutes = Math.floor((validDaytime % 3600) / 60);
+    const formatProgressTime = (secs) => {
+        if (!secs || secs === 0) return '0m';
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        if (m > 0) return `${m}m ${s > 0 ? `${s}s` : ''}`;
+        return `${s}s`;
+    };
 
     return (
         <div className="lg:col-span-1 flex flex-row lg:flex-col gap-3 md:gap-6 flex-shrink-0">
-            <div className="w-full rounded-[20px] md:rounded-[32px] p-5 md:p-8 flex flex-col justify-start flex-1 min-h-[120px] md:min-h-[240px]" style={heavyCardStyle}>
+            <div className="w-full rounded-[20px] md:rounded-[32px] p-5 md:p-8 flex flex-col justify-start flex-1 min-h-[120px] md:min-h-[220px]" style={heavyCardStyle}>
                 
                 <div className="flex items-center mb-4 md:mb-8">
                     <h3 className="text-[10px] md:text-[12px] font-bold tracking-[0.15em] text-[#E0E0E0] uppercase" style={capsuleStyle}>
@@ -139,8 +220,9 @@ const QuickStats = memo(() => {
                 
                 <div className="flex flex-row md:flex-col justify-between md:justify-start items-center md:items-start w-full mt-auto md:mt-0">
                     <div className="mb-0 md:mb-6 flex flex-col items-center md:items-start">
-                        {/* Ab ye directly updated valid hours/minutes dikhayega */}
-                        <div className="text-2xl md:text-[38px] font-bold text-[#E0E0E0] tracking-tight leading-none">{hours}h {minutes}m</div>
+                        <div className="text-2xl md:text-[38px] font-bold text-[#E0E0E0] tracking-tight leading-none">
+                            {formatProgressTime(totalDaytime)}
+                        </div>
                         <div className="text-[12px] md:text-[14px] text-[#A3A3A3] mt-2 font-medium">Focus Time</div>
                     </div>
                     <div className="hidden md:block w-full h-[1px] bg-white/10 mb-6" style={{boxShadow: '0 1px 0 rgba(0,0,0,0.5)'}}></div>
@@ -151,24 +233,7 @@ const QuickStats = memo(() => {
                 </div>
             </div>
             
-            <div className="hidden lg:flex w-full rounded-[32px] p-8 flex-col relative text-center flex-1 min-h-[200px]" style={heavyCardStyle}>
-                
-                <div className="absolute top-6 left-6">
-                    <h3 className="text-[10px] md:text-[12px] font-bold tracking-[0.15em] text-[#E0E0E0] uppercase" style={capsuleStyle}>
-                        Quick Guide
-                    </h3>
-                </div>
-
-                <div className="flex-1 flex flex-col items-center justify-center mt-6 w-full">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center mb-5" style={heavyInputStyle}>
-                        <Target size={28} strokeWidth={1.5} className="text-[#A3A3A3] w-8 h-8" />
-                    </div>
-                    <h4 className="text-[#E0E0E0] font-semibold mb-2 text-[16px]">Stay Locked In</h4>
-                    <p className="text-[14px] md:text-[15px] text-[#A3A3A3] leading-relaxed font-medium px-2">
-                        Enter your task, start the timer, and focus deeply.
-                    </p>
-                </div>
-            </div>
+            <TodaySessionsList />
         </div>
     );
 });
@@ -176,18 +241,245 @@ const QuickStats = memo(() => {
 const TaskInput = memo(() => {
     const taskName = useTimer(s => s.taskName);
     const isRunning = useTimer(s => s.isRunning);
-    
+    const { isLocked, decryptData } = useCrypto();
+
+    const [isOpen, setIsOpen] = useState(false);
+    const [pendingTasks, setPendingTasks] = useState([]);
+    const [loadingTasks, setLoadingTasks] = useState(false);
+    const dropdownRef = useRef(null);
+    const inputRef = useRef(null);
+
+    // Fetch and decrypt today's pending tasks
+    const fetchPendingTasks = useCallback(async () => {
+        try {
+            setLoadingTasks(true);
+            const res = await apiFetch("/api/tasks/today-pending", { credentials: "include" });
+            if (res.ok) {
+                const rawTasks = await res.json();
+                const decryptedList = await Promise.all(
+                    rawTasks.map(async (t) => {
+                        let displayTitle = t.title || "Untitled Task";
+                        if (!isLocked && decryptData && t.encryptedDescription) {
+                            try {
+                                displayTitle = await decryptData(t.encryptedDescription);
+                            } catch (e) {
+                                displayTitle = t.title || "⚠️ Encrypted Task";
+                            }
+                        }
+                        return {
+                            ...t,
+                            displayTitle,
+                        };
+                    })
+                );
+                setPendingTasks(decryptedList);
+            }
+        } catch (err) {
+            console.error("Failed to fetch today's pending tasks:", err);
+        } finally {
+            setLoadingTasks(false);
+        }
+    }, [isLocked, decryptData]);
+
+    // Fetch on mount and when crypto unlocks
+    useEffect(() => {
+        fetchPendingTasks();
+    }, [fetchPendingTasks]);
+
+    // Re-fetch when dropdown is opened to ensure fresh list
+    useEffect(() => {
+        if (isOpen) {
+            fetchPendingTasks();
+        }
+    }, [isOpen, fetchPendingTasks]);
+
+    // Handle outside click to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen]);
+
+    // Close dropdown on Escape without resetting timer
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                setIsOpen(false);
+            }
+        };
+        window.addEventListener('keydown', handleEscape, true);
+        return () => window.removeEventListener('keydown', handleEscape, true);
+    }, [isOpen]);
+
+    const handleSelectTask = (task) => {
+        timerStore.setState({ 
+            taskName: task.displayTitle,
+            selectedTaskId: task._id
+        });
+        setIsOpen(false);
+    };
+
+    const handleClearTask = (e) => {
+        e.stopPropagation();
+        timerStore.setState({ taskName: "", selectedTaskId: null });
+        if (inputRef.current) inputRef.current.focus();
+    };
+
+    const getPriorityDot = (p) => {
+        switch (Number(p)) {
+            case 5: return '#EF4444';
+            case 3: return '#F59E0B';
+            case 1: return '#3B82F6';
+            default: return '#71717A';
+        }
+    };
+
     return (
-        <div className="w-full mb-3 md:mb-6 flex-shrink-0">
-            <label className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-[#A3A3A3] uppercase mb-2 block ml-2">Current Task</label>
-            <div className="w-full flex items-center gap-3 md:gap-4 rounded-[14px] md:rounded-2xl px-4 py-3 md:px-6 md:py-5 transition-all" style={heavyInputStyle}>
+        <div className="w-full mb-3 md:mb-6 flex-shrink-0 relative" ref={dropdownRef}>
+            <div className="flex items-center justify-between mb-2 px-2">
+                <label className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-[#A3A3A3] uppercase">
+                    Current Task
+                </label>
+                {pendingTasks.length > 0 && (
+                    <button 
+                        type="button"
+                        onClick={() => setIsOpen(prev => !prev)}
+                        className="text-[10px] text-blue-400 hover:text-blue-300 font-bold tracking-wider uppercase transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                        <span>{pendingTasks.length} pending today</span>
+                        <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                )}
+            </div>
+
+            <div 
+                className="w-full flex items-center gap-2 md:gap-3 rounded-[14px] md:rounded-2xl px-4 py-3 md:px-5 md:py-4 transition-all relative" 
+                style={heavyInputStyle}
+            >
                 <Target size={18} className={`flex-shrink-0 md:w-5 md:h-5 ${isRunning ? 'text-[#E0E0E0]' : 'text-[#A3A3A3]'}`} />
+                
                 <input 
-                    type="text" value={taskName} onChange={(e) => timerStore.setState({ taskName: e.target.value })}
+                    ref={inputRef}
+                    type="text" 
+                    value={taskName} 
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        const matching = pendingTasks.find(t => (t.displayTitle || "").trim().toLowerCase() === val.trim().toLowerCase());
+                        timerStore.setState({ 
+                            taskName: val,
+                            selectedTaskId: matching ? matching._id : null
+                        });
+                    }}
+                    onFocus={() => {
+                        if (pendingTasks.length > 0) setIsOpen(true);
+                    }}
                     placeholder="What are you focusing on?" 
                     className="bg-transparent border-none outline-none text-[#E0E0E0] placeholder:text-[#737373] w-full text-[14px] md:text-[16px] font-medium"
                 />
+
+                {/* Clear button if text entered */}
+                {taskName && (
+                    <button
+                        type="button"
+                        onClick={handleClearTask}
+                        className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors shrink-0"
+                        title="Clear task"
+                    >
+                        <X size={15} />
+                    </button>
+                )}
+
+                {/* Dropdown toggle button */}
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(prev => !prev)}
+                    className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg border transition-all shrink-0 cursor-pointer ${
+                        isOpen 
+                            ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' 
+                            : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-neutral-400 hover:text-white'
+                    }`}
+                    title="Select today's task"
+                >
+                    <ChevronDown size={15} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
             </div>
+
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl overflow-hidden border border-white/[0.12] bg-[#0E0E10] shadow-[0_20px_50px_rgba(0,0,0,0.95)]"
+                    >
+                        <div className="px-4 py-2.5 bg-[#141416] border-b border-white/[0.06] flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-[#A3A3A3] uppercase tracking-wider flex items-center gap-1.5">
+                                <Clock size={12} className="text-neutral-400" />
+                                Today's Pending Tasks
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-[#0A84FF] border border-blue-500/20">
+                                {pendingTasks.length}
+                            </span>
+                        </div>
+
+                        <div className="max-h-[220px] overflow-y-auto p-1.5 flex flex-col gap-1 hide-scrollbar">
+                            {loadingTasks ? (
+                                <div className="py-6 text-center text-[12px] text-neutral-500 font-medium">
+                                    Loading tasks...
+                                </div>
+                            ) : pendingTasks.length === 0 ? (
+                                <div className="py-6 px-4 text-center text-neutral-500 flex flex-col items-center gap-1">
+                                    <span className="text-[13px] font-medium text-neutral-400">No pending tasks for today</span>
+                                    <span className="text-[11px] text-neutral-600">Type a custom task in the field above</span>
+                                </div>
+                            ) : (
+                                pendingTasks.map((t) => {
+                                    const isSelected = taskName === t.displayTitle;
+                                    return (
+                                        <div
+                                            key={t._id}
+                                            onClick={() => handleSelectTask(t)}
+                                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl cursor-pointer transition-all ${
+                                                isSelected
+                                                    ? 'bg-blue-500/15 text-white border border-blue-500/30'
+                                                    : 'hover:bg-white/[0.06] text-[#E0E0E0] border border-transparent'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                                                <div 
+                                                    className="w-2 h-2 rounded-full shrink-0" 
+                                                    style={{ backgroundColor: getPriorityDot(t.priority) }} 
+                                                />
+                                                <span className="text-[13px] font-medium truncate">
+                                                    {t.displayTitle}
+                                                </span>
+                                            </div>
+
+                                            {isSelected ? (
+                                                <Check size={14} className="text-blue-400 shrink-0" />
+                                            ) : (
+                                                <span className="text-[10px] font-bold text-neutral-500 uppercase">Select</span>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 });
@@ -255,7 +547,11 @@ const fetchTodayStats = async () => {
         const res = await apiFetch("/api/session/stopwatch/today-stats", { credentials: "include" });
         const data = await res.json();
         if (data.success) {
-            statsStore.setState({ totalDaytime: data.totalDaytime, totalSessions: data.totalSessions });
+            statsStore.setState({ 
+                totalDaytime: data.totalDaytime || 0, 
+                totalSessions: data.totalSessions || 0,
+                todaySessions: data.sessions || []
+            });
         }
     } catch (err) {
         console.error("Failed to fetch stats", err);
@@ -279,17 +575,42 @@ const handleStartBackend = async (taskName) => {
     }
 };
 
-const handleStopBackend = async (sessionId, isFinalSave = false) => {
+const handleStopBackend = async (sessionId, isFinalSave = false, duration = 0, taskName = "") => {
     try {
         await apiFetch("/api/session/stopwatch/stop", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ sessionId, isFinalSave }) 
+            body: JSON.stringify({ sessionId, isFinalSave, duration, taskName }) 
         });
-        fetchTodayStats(); 
+        await fetchTodayStats(); 
     } catch (err) {
         console.error("Backend Stop failed", err);
+    }
+};
+
+const triggerSaveFlow = () => {
+    const state = timerStore.getState();
+    if (state.time <= 0) return;
+
+    if (state.isRunning) {
+        timerStore.setState({ isRunning: false });
+        handleStopBackend(state.sessionId, false, state.time, state.taskName);
+    }
+
+    if (state.selectedTaskId) {
+        timerStore.setState({ showSaveModal: true });
+    } else {
+        handleStopBackend(state.sessionId, true, state.time, state.taskName || "Focus Session");
+        showToast("Session Saved Successfully!");
+        timerStore.setState({ 
+            isRunning: false, 
+            time: 0, 
+            taskName: "", 
+            selectedTaskId: null, 
+            sessionId: null, 
+            showSaveModal: false 
+        });
     }
 };
 
@@ -304,7 +625,7 @@ const StartPauseButton = memo(() => {
             handleStartBackend(state.taskName);
         } else {
             showToast("Timer Paused");
-            handleStopBackend(state.sessionId, false);
+            handleStopBackend(state.sessionId, false, state.time, state.taskName);
         }
     }, []);
 
@@ -315,7 +636,7 @@ const StartPauseButton = memo(() => {
                 variant="hatched" 
                 bloom="aura" 
                 onClick={handleStartPause}
-                className="w-full flex items-center justify-center gap-2 py-3.5 md:py-5 font-semibold text-[14px] md:text-[15px] text-white"
+                className="w-full flex items-center justify-center gap-2 py-3.5 md:py-5 font-semibold text-[14px] md:text-[15px] text-white cursor-pointer"
             >
                 <AnimatePresence mode="wait">
                     <motion.div key={isRunning ? 'pause' : 'play'} initial={{ opacity: 0, scale: 0.5, rotate: -45 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.5, rotate: 45 }} transition={{ duration: 0.15 }}>
@@ -331,17 +652,16 @@ const StartPauseButton = memo(() => {
 const SaveButton = memo(() => {
     const hasTime = useTimer(s => s.time > 0);
     const handleSave = useCallback(() => {
-        const state = timerStore.getState();
-        if (state.time > 0) {
-            handleStopBackend(state.sessionId, true); 
-            showToast("Session Saved Successfully!");
-            timerStore.setState({ isRunning: false, time: 0, taskName: "", sessionId: null }); 
-        }
+        triggerSaveFlow();
     }, []);
 
     return (
-        <motion.button onClick={handleSave} disabled={!hasTime} whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center gap-2 px-4 sm:px-0 sm:w-36 py-3.5 md:py-5 rounded-[14px] md:rounded-2xl font-medium text-[14px] md:text-[15px] text-[#A3A3A3] hover:text-[#E0E0E0] transition-colors duration-200" style={secondaryButtonStyle}
+        <motion.button 
+            onClick={handleSave} 
+            disabled={!hasTime} 
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center gap-2 px-4 sm:px-0 sm:w-36 py-3.5 md:py-5 rounded-[14px] md:rounded-2xl font-medium text-[14px] md:text-[15px] text-[#A3A3A3] hover:text-[#E0E0E0] transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" 
+            style={secondaryButtonStyle}
         >
             <Save size={16} className="md:w-[18px] md:h-[18px]" /> <span className="hidden sm:inline">Save</span>
         </motion.button>
@@ -361,12 +681,16 @@ const ResetButton = memo(() => {
             body: JSON.stringify({ sessionId: state.sessionId, isFinalSave: false, isReset: true })
         });
         
-        timerStore.setState({ isRunning: false, time: 0, sessionId: null });
+        timerStore.setState({ isRunning: false, time: 0, sessionId: null, showSaveModal: false });
     }, []);
 
     return (
-        <motion.button onClick={handleReset} disabled={!hasTime} whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-[46px] h-[46px] sm:w-[64px] sm:h-auto py-0 sm:py-5 rounded-[14px] md:rounded-2xl text-[#A3A3A3] hover:text-[#E0E0E0] transition-colors duration-200" style={secondaryButtonStyle}
+        <motion.button 
+            onClick={handleReset} 
+            disabled={!hasTime} 
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center w-[46px] h-[46px] sm:w-[64px] sm:h-auto py-0 sm:py-5 rounded-[14px] md:rounded-2xl text-[#A3A3A3] hover:text-[#E0E0E0] transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" 
+            style={secondaryButtonStyle}
         >
             <RotateCcw size={16} className="md:w-[18px] md:h-[18px]" />
         </motion.button>
@@ -453,7 +777,7 @@ const SystemEffects = memo(() => {
             const state = timerStore.getState();
             if (state.strictMode && document.visibilityState === 'hidden' && state.isRunning) {
                 timerStore.setState({ isRunning: false });
-                handleStopBackend(state.sessionId, false);
+                handleStopBackend(state.sessionId, false, state.time, state.taskName);
                 showToast("Timer Paused (Strict Mode)");
             }
         };
@@ -475,29 +799,169 @@ const SystemEffects = memo(() => {
                     handleStartBackend(state.taskName);
                 } else {
                     showToast("Timer Paused");
-                    handleStopBackend(state.sessionId, false);
+                    handleStopBackend(state.sessionId, false, state.time, state.taskName);
                 }
             } 
             else if (e.code === 'Escape') { 
                 e.preventDefault(); 
                 if (state.isRunning) {
-                    handleStopBackend(state.sessionId, false);
+                    handleStopBackend(state.sessionId, false, state.time, state.taskName);
                 }
-                timerStore.setState({ isRunning: false, time: 0, sessionId: null }); 
+                timerStore.setState({ isRunning: false, time: 0, sessionId: null, showSaveModal: false }); 
             } 
             else if (e.code === 'Enter') {
                 e.preventDefault();
-                if (state.time > 0) {
-                    handleStopBackend(state.sessionId, true);
-                    showToast("Session Saved Successfully!");
-                    timerStore.setState({ isRunning: false, time: 0, taskName: "", sessionId: null }); 
-                }
+                triggerSaveFlow();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
     return null;
+});
+
+const SaveModal = memo(() => {
+    const showSaveModal = useTimer(s => s.showSaveModal);
+    const time = useTimer(s => s.time);
+    const taskName = useTimer(s => s.taskName);
+    const selectedTaskId = useTimer(s => s.selectedTaskId);
+    const sessionId = useTimer(s => s.sessionId);
+    const [isSaving, setIsSaving] = useState(false);
+
+    if (!showSaveModal) return null;
+
+    const formatModalDuration = (secs) => {
+        if (!secs || secs === 0) return '0s';
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (h > 0) return `${h}h ${m}m ${s > 0 ? `${s}s` : ''}`;
+        if (m > 0) return `${m}m ${s > 0 ? `${s}s` : ''}`;
+        return `${s}s`;
+    };
+
+    const handleCompleteAndSave = async () => {
+        try {
+            setIsSaving(true);
+            if (selectedTaskId) {
+                await apiFetch(`/api/task/patchtask/${selectedTaskId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ status: true })
+                });
+            }
+            await handleStopBackend(sessionId, true, time, taskName || "Focus Session");
+            showToast("Task completed & session saved!");
+            timerStore.setState({ 
+                isRunning: false, 
+                time: 0, 
+                taskName: "", 
+                selectedTaskId: null, 
+                sessionId: null, 
+                showSaveModal: false 
+            });
+        } catch (err) {
+            console.error("Failed to complete task and save session", err);
+            showToast("Failed to save session");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSaveOnly = async () => {
+        try {
+            setIsSaving(true);
+            await handleStopBackend(sessionId, true, time, taskName || "Focus Session");
+            showToast("Session saved!");
+            timerStore.setState({ 
+                isRunning: false, 
+                time: 0, 
+                taskName: "", 
+                selectedTaskId: null, 
+                sessionId: null, 
+                showSaveModal: false 
+            });
+        } catch (err) {
+            console.error("Failed to save session", err);
+            showToast("Failed to save session");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleClose = () => {
+        if (isSaving) return;
+        timerStore.setState({ showSaveModal: false });
+    };
+
+    return (
+        <div className="fixed inset-0 z-[999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full max-w-md rounded-[28px] p-6 sm:p-7 relative flex flex-col gap-5 border border-white/10"
+                style={heavyCardStyle}
+            >
+                <button 
+                    type="button"
+                    onClick={handleClose}
+                    disabled={isSaving}
+                    className="absolute top-5 right-5 p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                >
+                    <X size={18} />
+                </button>
+
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
+                        <Save size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-[17px] font-bold text-white tracking-tight">Save Focus Session</h3>
+                        <p className="text-[12px] text-neutral-400 font-mono">
+                            Logged {formatModalDuration(time)}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                    <span className="text-[10px] font-bold tracking-wider text-neutral-400 uppercase block mb-1">
+                        Focus Task
+                    </span>
+                    <p className="text-[14px] font-medium text-neutral-200 truncate">
+                        {taskName || "Focus Session"}
+                    </p>
+                </div>
+
+                <p className="text-[13px] text-neutral-300 leading-relaxed">
+                    Do you want to mark this task as completed in your Workspace and Calendar?
+                </p>
+
+                <div className="flex flex-col gap-2.5 pt-1">
+                    <button
+                        type="button"
+                        onClick={handleCompleteAndSave}
+                        disabled={isSaving}
+                        className="w-full py-3.5 px-4 rounded-xl font-semibold text-[14px] bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 cursor-pointer disabled:opacity-50"
+                    >
+                        <Check size={16} />
+                        <span>Complete Task & Save</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleSaveOnly}
+                        disabled={isSaving}
+                        className="w-full py-3 px-4 rounded-xl font-medium text-[13px] text-neutral-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                        <span>Save Session Only (Keep Task Pending)</span>
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
 });
 
 const FocusCard = memo(() => {
@@ -587,6 +1051,8 @@ const Stopwatch = () => {
             `}</style>
 
             <div className="h-screen w-full relative overflow-hidden font-mono flex flex-col" style={{ backgroundColor: COLORS.bg, color: COLORS.textPrimary }}>
+                <ToastOverlay />
+                <SaveModal />
                 <div className="w-full h-full flex flex-col relative z-10"
                      style={{ paddingTop: 32, paddingBottom: 24, paddingLeft: 'clamp(24px, 5vw, 96px)', paddingRight: 'clamp(24px, 5vw, 96px)' }}>
                 

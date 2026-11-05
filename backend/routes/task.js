@@ -172,6 +172,48 @@ router.get("/calendar", async function (req, res) {
   }
 });
 
+//  to get current day's pending tasks (for stopwatch dropdown, etc.) ------------------
+router.get("/today-pending", async function (req, res) {
+  try {
+    const userId = req.user.id;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    // IST offset calculation (UTC+5:30)
+    const istNow = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    const istToday = new Date(istNow.toISOString().split("T")[0] + "T00:00:00.000Z");
+
+    const daySessions = await dailysessionmodel.find({
+      userId,
+      $or: [
+        { date: { $gte: startOfToday, $lte: endOfToday } },
+        { date: istToday },
+      ],
+    });
+    const daySessionIds = daySessions.map((d) => d._id);
+
+    const tasks = await taskmodel
+      .find({
+        userId,
+        status: false,
+        $or: [
+          { daySessionId: { $in: daySessionIds } },
+          { startDate: { $gte: startOfToday, $lte: endOfToday } },
+        ],
+      })
+      .sort({ priority: -1, createdAt: -1 });
+
+    res.status(200).json(tasks);
+  } catch (err) {
+    res.status(500).json({
+      message: "Error fetching today's pending tasks",
+      error: err.message,
+    });
+  }
+});
+
 //  to get unscheduled backlog tasks + past pending (overdue) tasks -------------------------
 router.get("/unscheduled", async function (req, res) {
   try {
