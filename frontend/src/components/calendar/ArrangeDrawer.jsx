@@ -21,6 +21,7 @@ const ArrangeDrawer = ({
   unscheduledTasks,
   selectedDate,
   selectedDayTasks = [],
+  decryptedTitles,
   onCreateTask,
   onToggleTask,
   onDeleteTask,
@@ -57,11 +58,13 @@ const ArrangeDrawer = ({
           )
         : 30;
 
+    const displayTitle = decryptedTitles?.[task._id] || task.title || 'Untitled Task';
+
     const payload = {
       type: task.startDate ? 'calendar_event' : 'unscheduled',
       taskId: task._id,
       durationMinutes,
-      title: task.title,
+      title: displayTitle,
       priority: task.priority,
       originalDate: task.startDate,
     };
@@ -104,9 +107,10 @@ const ArrangeDrawer = ({
 
   const currentList = activeTab === 'selected' ? selectedDayTasks : unscheduledTasks;
 
-  const filteredTasks = currentList.filter((t) =>
-    (t.title || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTasks = currentList.filter((t) => {
+    const title = decryptedTitles?.[t._id] || t.title || '';
+    return title.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const selectedDateLabel = selectedDate
     ? new Date(selectedDate).toLocaleDateString('en-US', {
@@ -336,7 +340,7 @@ const ArrangeDrawer = ({
                         isCompleted ? 'line-through text-neutral-300 decoration-neutral-500/80' : 'text-white/90'
                       }`}
                     >
-                      {task.title || 'Untitled Task'}
+                      {decryptedTitles?.[task._id] || task.title || 'Untitled Task'}
                     </span>
 
                     {activeTab === 'backlog' ? (

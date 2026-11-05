@@ -10,6 +10,7 @@ const MonthView = ({
   currentDate,
   selectedDate,
   tasks,
+  decryptedTitles,
   onDayClick,
   onDayDoubleClick,
   onTaskClick,
@@ -136,11 +137,13 @@ const MonthView = ({
           )
         : 30;
 
+    const displayTitle = decryptedTitles?.[task._id] || task.title || 'Untitled Task';
+
     const payload = {
       type: 'calendar_event',
       taskId: task._id,
       durationMinutes,
-      title: task.title,
+      title: displayTitle,
       priority: task.priority,
       originalDate: task.startDate,
     };
@@ -230,6 +233,7 @@ const MonthView = ({
                 {dayTasks.slice(0, 3).map((task) => {
                   const priorityMeta = getPriorityMeta(task.priority);
                   const isCompleted = Boolean(task.status);
+                  const displayTitle = decryptedTitles?.[task._id] || task.title || 'Untitled Task';
 
                   return (
                     <div
@@ -247,8 +251,8 @@ const MonthView = ({
                       }`}
                       title={
                         isCompleted
-                          ? `${task.title} (Completed - cannot be moved)`
-                          : `${task.title} (drag to another date)`
+                          ? `${displayTitle} (Completed - cannot be moved)`
+                          : `${displayTitle} (drag to another date)`
                       }
                     >
                       <div
@@ -257,7 +261,7 @@ const MonthView = ({
                           backgroundColor: isCompleted ? '#A1A1AA' : priorityMeta.color,
                         }}
                       />
-                      <span className="truncate font-medium">{task.title}</span>
+                      <span className="truncate font-medium">{displayTitle}</span>
                     </div>
                   );
                 })}

@@ -2,6 +2,7 @@
 
 const express = require("express");
 const taskmodel = require("../models/tasks");
+const dailysessionmodel = require("../models/daysession");
 const router = express.Router();
 
 //  for adding user task in db ------------------------------------------------------------------------
@@ -9,17 +10,34 @@ const router = express.Router();
 router.post("/addtask", async function (req, res) {
   try {
     const userId = req.user.id;
-    const { encryptedDescription, encryptedAESKey, daySessionId } = req.body;
+    const { encryptedDescription, encryptedAESKey, daySessionId, title } = req.body;
+
+    let startDate = null;
+    let dueDate = null;
+
+    if (daySessionId) {
+      const daySession = await dailysessionmodel.findOne({ _id: daySessionId, userId });
+      if (daySession && daySession.date) {
+        const start = new Date(daySession.date);
+        start.setHours(9, 0, 0, 0);
+        startDate = start;
+        dueDate = new Date(start.getTime() + 60 * 60000);
+      }
+    }
 
     const task = await taskmodel.create({
       encryptedDescription,
-      encryptedAESKey,
+      encryptedAESKey: encryptedAESKey || "e2e_v2",
+      title: title || "Encrypted Task",
       daySessionId,
       userId,
+      startDate,
+      dueDate,
+      status: false,
     });
 
     res.status(201).json({
-      message: "Task Cretaed",
+      message: "Task Created",
       task,
     });
   } catch (err) {
@@ -37,15 +55,30 @@ router.get("/gettask/:daySessionId", async function (req, res) {
     const userId = req.user.id;
     const { daySessionId } = req.params;
 
-    const task = await taskmodel.find({
-      daySessionId: req.params.daySessionId,
-      userId,
-    }).sort({ createdAt: -1 });
+    const daySession = await dailysessionmodel.findOne({ _id: daySessionId, userId });
+    let query = { userId };
+
+    if (daySession && daySession.date) {
+      const dayStart = new Date(daySession.date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(daySession.date);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      query.$or = [
+        { daySessionId: daySessionId },
+        { startDate: { $gte: dayStart, $lte: dayEnd } },
+      ];
+    } else {
+      query.daySessionId = daySessionId;
+    }
+
+    const task = await taskmodel.find(query).sort({ startDate: 1, createdAt: -1 });
 
     res.json(task);
   } catch (err) {
     res.status(500).json({
       message: "Error fetching task",
+      error: err.message,
     });
   }
 });
@@ -184,7 +217,17 @@ router.patch("/:id/timeblock", async function (req, res) {
     }
 
     const updateFields = {};
-    if (startDate !== undefined) updateFields.startDate = startDate ? new Date(startDate) : null;
+    if (startDate !== undefined) {
+      updateFields.startDate = startDate ? new Date(startDate) : null;
+      if (startDate) {
+        const dateObj = new Date(startDate);
+        dateObj.setHours(0, 0, 0, 0);
+        const ds = await dailysessionmodel.findOne({ userId, date: dateObj });
+        updateFields.daySessionId = ds ? ds._id : null;
+      } else {
+        updateFields.daySessionId = null;
+      }
+    }
     if (dueDate !== undefined) updateFields.dueDate = dueDate ? new Date(dueDate) : null;
     if (isAllDay !== undefined) updateFields.isAllDay = Boolean(isAllDay);
     if (priority !== undefined) updateFields.priority = Number(priority);
@@ -210,15 +253,41 @@ router.patch("/:id/timeblock", async function (req, res) {
 router.post("/create", async function (req, res) {
   try {
     const userId = req.user.id;
-    const { title, startDate, dueDate, isAllDay, priority, color, timeZone } = req.body;
+    const {
+      title,
+      startDate,
+      dueDate,
+      isAllDay,
+      priority,
+      color,
+      timeZone,
+      encryptedDescription,
+      encryptedAESKey,
+    } = req.body;
 
-    if (!title || !title.trim()) {
-      return res.status(400).json({ message: "Title is required" });
+    if (!title && !encryptedDescription) {
+      return res.status(400).json({ message: "Task description or title is required" });
+    }
+
+    let daySessionId = null;
+    if (startDate) {
+      const dateObj = new Date(startDate);
+      dateObj.setHours(0, 0, 0, 0);
+      const existingDaySession = await dailysessionmodel.findOne({
+        userId,
+        date: dateObj,
+      });
+      if (existingDaySession) {
+        daySessionId = existingDaySession._id;
+      }
     }
 
     const task = await taskmodel.create({
       userId,
-      title: title.trim(),
+      title: title ? title.trim() : "Encrypted Task",
+      encryptedDescription: encryptedDescription || null,
+      encryptedAESKey: encryptedAESKey || (encryptedDescription ? "e2e_v2" : null),
+      daySessionId,
       startDate: startDate ? new Date(startDate) : null,
       dueDate: dueDate ? new Date(dueDate) : null,
       isAllDay: Boolean(isAllDay),

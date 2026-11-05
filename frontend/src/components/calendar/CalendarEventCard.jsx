@@ -10,6 +10,7 @@ import {
 
 const CalendarEventCard = ({
   layoutItem,
+  decryptedTitle,
   onTaskMove,
   onTaskResize,
   onTaskToggle,
@@ -102,6 +103,7 @@ const CalendarEventCard = ({
   const isCompact = currentHeight < 56;
 
   const isCompleted = Boolean(task.status);
+  const displayTitle = decryptedTitle || task.title || 'Untitled Task';
 
   return (
     <div
@@ -115,7 +117,7 @@ const CalendarEventCard = ({
         width: `calc(${widthPercent}% - 4px)`,
         borderLeftColor: isCompleted ? '#71717A' : priorityMeta.color,
       }}
-      title={isCompleted ? `${task.title || 'Task'} (Completed - cannot be moved)` : undefined}
+      title={isCompleted ? `${displayTitle} (Completed - cannot be moved)` : undefined}
       className={`absolute z-20 group rounded-md border-l-[3.5px] border border-white/[0.08] select-none overflow-hidden flex flex-col justify-between transition-all ${
         isCompleted
           ? 'bg-[#202023] opacity-85 cursor-default hover:bg-[#252528]'
@@ -143,7 +145,7 @@ const CalendarEventCard = ({
               isCompleted ? 'line-through text-neutral-300 decoration-neutral-500/80' : 'text-white/95'
             }`}
           >
-            {task.title || 'Untitled Task'}
+            {displayTitle}
           </span>
         </div>
 

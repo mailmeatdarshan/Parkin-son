@@ -22,6 +22,7 @@ import {
   formatTime24,
   isSameDay,
 } from '../../utils/calendarLayout';
+import { useCrypto } from '../../context/CryptoContext';
 
 const MONTH_NAMES = [
   'January',
@@ -39,6 +40,7 @@ const MONTH_NAMES = [
 ];
 
 const CalendarContainer = () => {
+  const { isLocked, encryptData, decryptData } = useCrypto();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('week'); // 'day' | 'week' | 'month' | 'year'
@@ -46,7 +48,46 @@ const CalendarContainer = () => {
 
   const [tasks, setTasks] = useState([]);
   const [unscheduledTasks, setUnscheduledTasks] = useState([]);
+  const [decryptedTitles, setDecryptedTitles] = useState({});
   const [loading, setLoading] = useState(false);
+
+  // Decrypt titles whenever tasks or unscheduledTasks update
+  useEffect(() => {
+    if (isLocked || !decryptData) return;
+    const allTasks = [...tasks, ...unscheduledTasks];
+    let cancelled = false;
+
+    const decryptAll = async () => {
+      const updated = { ...decryptedTitles };
+      let changed = false;
+
+      for (const t of allTasks) {
+        if (!t || !t._id) continue;
+        if (!(t._id in updated)) {
+          if (t.encryptedDescription) {
+            try {
+              updated[t._id] = await decryptData(t.encryptedDescription);
+            } catch (err) {
+              updated[t._id] = t.title || '⚠️ Decryption Failed';
+            }
+          } else {
+            updated[t._id] = t.title || 'Untitled Task';
+          }
+          changed = true;
+        }
+      }
+
+      if (changed && !cancelled) {
+        setDecryptedTitles(updated);
+      }
+    };
+
+    decryptAll();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tasks, unscheduledTasks, isLocked, decryptData]);
 
   // Compute tasks for the currently selected day (for the Arrange Drawer)
   const selectedDayTasks = useMemo(() => {
@@ -334,13 +375,30 @@ const CalendarContainer = () => {
   // Create Task (scheduled or unscheduled)
   const handleCreateTask = async (taskData) => {
     try {
+      let payload = { ...taskData };
+      if (!isLocked && encryptData && taskData.title) {
+        try {
+          const enc = await encryptData(taskData.title);
+          payload.encryptedDescription = enc;
+          payload.encryptedAESKey = 'e2e_v2';
+        } catch (encErr) {
+          console.error('Encryption failed for new task:', encErr);
+        }
+      }
+
       const res = await apiFetch('/api/tasks/create', {
         method: 'POST',
-        body: JSON.stringify(taskData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         const created = await res.json();
+        if (taskData.title) {
+          setDecryptedTitles((prev) => ({
+            ...prev,
+            [created._id]: taskData.title,
+          }));
+        }
         if (created.startDate) {
           setTasks((prev) => [...prev, created]);
         } else {
@@ -548,6 +606,7 @@ const CalendarContainer = () => {
             <WeekView
               currentDate={currentDate}
               tasks={tasks}
+              decryptedTitles={decryptedTitles}
               onTaskMove={handleTaskMove}
               onTaskResize={handleTaskResize}
               onTaskToggle={handleTaskToggle}
@@ -563,6 +622,7 @@ const CalendarContainer = () => {
             <DayView
               currentDate={currentDate}
               tasks={tasks}
+              decryptedTitles={decryptedTitles}
               onTaskMove={handleTaskMove}
               onTaskResize={handleTaskResize}
               onTaskToggle={handleTaskToggle}
@@ -575,6 +635,7 @@ const CalendarContainer = () => {
               currentDate={currentDate}
               selectedDate={selectedDate}
               tasks={tasks}
+              decryptedTitles={decryptedTitles}
               onTaskMove={handleTaskMove}
               onDayClick={(dayDate) => {
                 setSelectedDate(dayDate);
@@ -622,6 +683,7 @@ const CalendarContainer = () => {
           unscheduledTasks={unscheduledTasks}
           selectedDate={selectedDate}
           selectedDayTasks={selectedDayTasks}
+          decryptedTitles={decryptedTitles}
           onCreateTask={handleCreateTask}
           onToggleTask={handleTaskToggle}
           onDeleteTask={handleTaskDelete}
