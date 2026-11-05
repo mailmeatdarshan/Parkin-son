@@ -527,7 +527,7 @@ const Workspace = () => {
                                 <button onClick={() => setExpandedBoxes(p => ({ ...p, [(day._id || day.id)]: !isExpanded }))} className="header-btn" title={isExpanded ? "Collapse" : "Expand"} style={{ marginLeft: !isExpanded ? 'auto' : 0 }}>
                                     {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </button>
-                                {isExpanded && <button onClick={() => { setEditingDayId(isEditing ? null : (day._id || day.id)); setExpandedBoxes(p => ({ ...p, [(day._id || day.id)]: true })); }} className="header-btn">{isEditing ? 'done' : 'edit'}</button>}
+                                {isExpanded && <button onClick={() => { setEditingDayId(isEditing ? null : (day._id || day.id)); setExpandedBoxes(p => ({ ...p, [(day._id || day.id)]: true })); }} className="header-btn">{isEditing ? 'Done' : 'Edit'}</button>}
                                 {isExpanded && (
                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                         <button className="header-btn" onClick={(e) => { const input = e.currentTarget.nextSibling; try { input.showPicker(); } catch { input.focus(); } }}>Deadline</button>
@@ -545,8 +545,8 @@ const Workspace = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '12px 0', borderBottom: `1px solid ${COLORS.border}` }}>
                                     <span style={{ color: COLORS.textMuted, fontSize: 14 }}>+</span>
                                     <input type="text" autoFocus placeholder="new task..." value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter') confirmAddTask((day._id || day.id)); }} style={{ flex: 1, background: 'transparent', border: 'none', color: COLORS.textPrimary, fontSize: 14, outline: 'none' }} />
-                                    <button onClick={() => confirmAddTask((day._id || day.id))} className="action-btn">save</button>
-                                    <button onClick={() => { setAddingTaskDayId(null); setNewTaskText(''); }} className="action-btn">cancel</button>
+                                    <button onClick={() => confirmAddTask((day._id || day.id))} className="action-btn">Save</button>
+                                    <button onClick={() => { setAddingTaskDayId(null); setNewTaskText(''); }} className="action-btn">Cancel</button>
                                 </div>
                             )}
                             {tasks.map((task, idx) => (
@@ -561,12 +561,12 @@ const Workspace = () => {
                                     </div>
                                     
                                     <div className="task-actions" style={{ display: 'flex', gap: 16 }}>
-                                        <button onClick={() => handleToggleTask(task._id, task.status, (day._id || day.id))} className="action-btn">{task.status ? 'undo' : 'done'}</button>
-                                        <button onClick={() => handleDeleteTask(task._id, (day._id || day.id))} className="action-btn">delete</button>
+                                        <button onClick={() => handleToggleTask(task._id, task.status, (day._id || day.id))} className="action-btn">{task.status ? 'Undo' : 'Done'}</button>
+                                        <button onClick={() => handleDeleteTask(task._id, (day._id || day.id))} className="action-btn">Delete</button>
                                     </div>
                                 </div>
                             ))}
-                            {tasks.length === 0 && addingTaskDayId !== (day._id || day.id) && <div style={{ color: COLORS.textMuted, fontSize: 13, marginTop: 16 }}>no tasks yet.</div>}
+                            {tasks.length === 0 && addingTaskDayId !== (day._id || day.id) && <div style={{ color: COLORS.textMuted, fontSize: 13, marginTop: 16 }}>No tasks yet.</div>}
                         </div>
                     )}
                 </div>

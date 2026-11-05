@@ -1,37 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // 1. Naya Import Add kiya
+import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  
-  const loginRef = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const STRENGTH = 0.35;
-
-  const navigate = useNavigate(); // 2. Router ka Hook initialize kiya
-
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const handleMouseMove = (e) => {
-    if (!loginRef.current) return;
-    const { width, height, left, top } = loginRef.current.getBoundingClientRect();
-    const x = (e.clientX - (left + width / 2)) * STRENGTH;
-    const y = (e.clientY - (top + height / 2)) * STRENGTH;
-    setPosition({ x, y });
-  };
-
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
-  };
+  const navigate = useNavigate();
 
   const handleScroll = (id) => {
     if (id === "features") {
@@ -39,34 +13,24 @@ function Navbar() {
     }
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "auto" });
+      element.scrollIntoView({ behavior: "smooth" });
       setIsOpen(false);
     }
   };
 
-  // 3. Yahan 'window.location.href' ko hata kar 'navigate' laga diya hai
-  const navigateToSignup = () => {
-    navigate("/signup"); 
-    setIsOpen(false); // Mobile menu auto-close
-  };
-
   const navigateToLogin = () => {
     navigate("/login");
-    setIsOpen(false); // Mobile menu auto-close
+    setIsOpen(false);
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-[999] bg-transparent transition-all duration-300 pointer-events-none`}>
+    <nav className="fixed top-0 left-0 right-0 z-[999] bg-transparent pointer-events-none">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-6 pointer-events-auto">
         
         {/* LOGO */}
         <div
           onClick={() => handleScroll("hero-section")}
-          className={`cursor-pointer text-xl md:text-2xl font-cinzel font-bold tracking-wider select-none transition-all duration-300 ${
-            scrolled
-              ? "opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto md:bg-black/85 md:text-white md:border md:border-zinc-800 md:rounded-2xl md:px-4 md:py-1.5 md:shadow-[0_10px_30px_rgba(0,0,0,0.8)] md:backdrop-blur-md"
-              : "opacity-100 text-white"
-          }`}
+          className="cursor-pointer text-xl md:text-2xl font-cinzel font-bold tracking-wider select-none text-white"
         >
           <span className="inline-flex items-center gap-2.5">
             <img src="/parkinson.svg" alt="Parkin'son Logo" className="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
@@ -75,11 +39,7 @@ function Navbar() {
         </div>
         
         {/* Desktop Navigation & Actions */}
-        <div
-          className={`hidden md:flex items-center gap-8 text-[13px] uppercase tracking-widest font-cinzel text-zinc-400 transition-all duration-300 ${
-            scrolled ? "opacity-0 pointer-events-none translate-y-[-10px]" : "opacity-100 translate-y-0"
-          }`}
-        >
+        <div className="hidden md:flex items-center gap-8 text-[13px] uppercase tracking-widest font-cinzel text-zinc-400">
           <span
             onClick={() => handleScroll("hero-section")}
             className="cursor-pointer hover:text-white transition-colors"
@@ -98,29 +58,19 @@ function Navbar() {
           >
             Pantheon
           </span>
-          <span
-            onClick={navigateToLogin}
-            className="cursor-pointer hover:text-white transition-colors"
-          >
-            Login
-          </span>
           
           <button 
-            onClick={navigateToSignup}
+            onClick={navigateToLogin}
             className="flex items-center gap-2 px-5 py-2 rounded-md bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-100 font-cinzel text-[12px] tracking-wider transition-all cursor-pointer whitespace-nowrap shadow-lg shadow-black/50"
           >
-            Initiate <span className="text-base leading-none">&rarr;</span>
+            LOGIN <span className="text-base leading-none">&rarr;</span>
           </button>
         </div>
         
         {/* Mobile Hamburger Trigger */}
         <button
           onClick={() => setIsOpen(true)}
-          className={`md:hidden transition-all duration-300 p-2.5 rounded-full pointer-events-auto ${
-            scrolled 
-              ? "bg-zinc-900/90 text-white backdrop-blur-md border border-zinc-800 shadow-md hover:bg-zinc-800" 
-              : "text-zinc-200 hover:text-white bg-transparent"
-          }`}
+          className="md:hidden p-2.5 rounded-full pointer-events-auto text-zinc-200 hover:text-white bg-transparent"
         >
           <Menu size={24} />
         </button>
@@ -195,16 +145,9 @@ function Navbar() {
               <div className="flex flex-col gap-3 mb-4 relative z-10 font-cinzel">
                 <button 
                   onClick={navigateToLogin}
-                  className="w-full text-center py-3 text-zinc-300 hover:text-white font-medium rounded-xl border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] active:scale-[0.99] transition-all text-xs tracking-wider"
+                  className="w-full text-center text-xs font-bold text-white uppercase tracking-wider px-4 py-3 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 shadow-md cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  Login
-                </button>
-                
-                <button 
-                  onClick={navigateToSignup}
-                  className="w-full text-center text-xs font-bold text-white uppercase tracking-wider px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 shadow-md cursor-pointer transition-all active:scale-[0.98]"
-                >
-                  Initiate
+                  LOGIN <span className="text-base leading-none">&rarr;</span>
                 </button>
               </div>
             </motion.div>

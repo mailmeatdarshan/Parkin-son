@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useLottie } from 'lottie-react';
-import lottieData from '../../assets/3rd.json';
+import { Lottie } from 'lottie-react';
+import lottiePatternData from '../../assets/lottiepattern.json';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   Flame, Clock, Grid, User, Users, Trophy, BarChart2, Settings,
@@ -43,15 +43,17 @@ const features = [
 ];
 
 const LottieWrapper = ({ animationData }) => {
-  const { View } = useLottie({
-    animationData: animationData,
-    loop: true,
-    autoplay: true,
-    rendererSettings: {
-      preserveAspectRatio: 'xMidYMid slice'
-    }
-  });
-  return View;
+  return (
+    <Lottie
+      src={animationData}
+      loop={true}
+      autoplay={true}
+      className="w-full h-full p-1 sm:p-2 invert"
+      rendererSettings={{
+        preserveAspectRatio: 'xMidYMid meet'
+      }}
+    />
+  );
 };
 
 const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
@@ -122,13 +124,13 @@ const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
             {feature.desc}
           </p>
           
-          <div className="w-[50%] max-w-[240px] h-[90px] sm:h-[110px] bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:-translate-y-1 transition-all duration-300 overflow-hidden shrink-0">
+          <div className="relative w-[50%] max-w-[240px] h-[90px] sm:h-[110px] bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:-translate-y-1 transition-all duration-300 overflow-hidden shrink-0 grayscale contrast-[1.08]">
             {index === 0 ? (
               <video autoPlay muted loop playsInline webkit-playsinline="true" className="w-full h-full object-cover">
                 <source src="/1st.webm" type="video/webm" />
               </video>
             ) : index === 1 ? (
-              <LottieWrapper animationData={lottieData} />
+              <LottieWrapper animationData={lottiePatternData} />
             ) : index === 2 ? (
               <video autoPlay muted loop playsInline webkit-playsinline="true" className="w-full h-full object-cover">
                 <source src="/2nd.webm" type="video/webm" />
@@ -140,6 +142,9 @@ const FeatureCard = ({ feature, index, isEven, scrollDir, onBranchActive }) => {
             ) : (
               <feature.icon size={36} className="text-zinc-300" strokeWidth={1.5} />
             )}
+
+            {/* Black & White Stoic Theme Overlay */}
+            <div className="absolute inset-0 bg-black/25 pointer-events-none" />
           </div>
         </div>
         

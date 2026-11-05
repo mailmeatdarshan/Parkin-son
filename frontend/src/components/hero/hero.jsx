@@ -5,23 +5,32 @@ import { useNavigate } from "react-router-dom";
 const Hero = () => {
   const navigate = useNavigate();
 
-  // Randomize between background1.jpg and background2.jpg and alternate on subsequent visits
-  const [heroBg] = useState(() => {
-    const images = ['/background1.jpg', '/background2.jpg'];
-    try {
-      const last = sessionStorage.getItem('parkinson_hero_bg');
-      let nextIndex;
-      if (last !== null) {
-        nextIndex = last === '0' ? 1 : 0;
-      } else {
-        nextIndex = Math.random() < 0.5 ? 0 : 1;
-      }
-      sessionStorage.setItem('parkinson_hero_bg', String(nextIndex));
-      return images[nextIndex];
-    } catch (e) {
-      return Math.random() < 0.5 ? '/background1.jpg' : '/background2.jpg';
+// Randomize between background1.jpg, background2.jpg, and background3.jpg
+const [heroBg] = useState(() => {
+  const images = [
+    '/background1.jpg',
+    '/background2.jpg',
+    '/background3.jpg',
+  ];
+  try {
+    const last = sessionStorage.getItem('parkinson_hero_bg');
+    let nextIndex;
+    if (last !== null) {
+      const availableIndices = images
+        .map((_, index) => index)
+        .filter(index => index !== Number(last));
+      nextIndex = availableIndices[
+        Math.floor(Math.random() * availableIndices.length)
+      ];
+    } else {
+      nextIndex = Math.floor(Math.random() * images.length);
     }
-  });
+    sessionStorage.setItem('parkinson_hero_bg', String(nextIndex));
+    return images[nextIndex];
+  } catch (e) {
+    return images[Math.floor(Math.random() * images.length)];
+  }
+});
 
   return (
     <section className="w-full relative flex flex-col items-center justify-center bg-black text-white pt-20 pb-12 md:pb-20 overflow-hidden">

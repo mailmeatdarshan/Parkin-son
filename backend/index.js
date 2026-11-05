@@ -71,7 +71,8 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/task", authMiddleware, taskRoutes);               
+app.use("/api/task", authMiddleware, taskRoutes);
+app.use("/api/tasks", authMiddleware, taskRoutes);               
 app.use("/api/session", authMiddleware, sessionRoutes);         
 app.use("/api/calendar", authMiddleware, calendarRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
