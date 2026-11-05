@@ -272,20 +272,20 @@ const YearView = ({
 
       if (heatmapEnabled) {
         if (activity.intensity === 0) {
-          cellStyleClass = 'bg-[#16161A] text-neutral-400 border border-white/[0.04]';
-          textStyleClass = 'text-neutral-400 font-medium';
+          cellStyleClass = 'bg-[#E5E8F7] text-[#151932] border border-[#D0D7F5]';
+          textStyleClass = 'text-[#151932] font-semibold';
         } else if (activity.intensity === 1) {
-          cellStyleClass = 'bg-[#1E3A8A]/75 text-blue-100 border border-[#2563EB]/40 shadow-[0_0_8px_rgba(30,58,138,0.4)]';
-          textStyleClass = 'text-blue-100 font-semibold';
+          cellStyleClass = 'bg-[#C6CEF0] text-[#151932] border border-[#B0BCEB]';
+          textStyleClass = 'text-[#151932] font-bold';
         } else if (activity.intensity === 2) {
-          cellStyleClass = 'bg-[#1D4ED8] text-white border border-[#3B82F6] shadow-[0_0_10px_rgba(29,78,216,0.5)]';
-          textStyleClass = 'text-white font-bold';
+          cellStyleClass = 'bg-[#AAB9ED] text-[#151932] border border-[#91A4E5]';
+          textStyleClass = 'text-[#151932] font-bold';
         } else if (activity.intensity === 3) {
-          cellStyleClass = 'bg-[#2563EB] text-white border border-[#60A5FA] shadow-[0_0_12px_rgba(37,99,235,0.6)]';
-          textStyleClass = 'text-white font-extrabold';
+          cellStyleClass = 'bg-[#819BE8] text-white border border-[#6B8AE0] shadow-[0_0_8px_rgba(129,155,232,0.35)]';
+          textStyleClass = 'text-white font-bold';
         } else {
           // Level 4 (Peak: 10+ tasks or 10+ hrs focus)
-          cellStyleClass = 'bg-[#3B82F6] text-white border border-[#93C5FD] shadow-[0_0_16px_rgba(59,130,246,0.8)] ring-1 ring-blue-300';
+          cellStyleClass = 'bg-[#5278E8] text-white border border-[#3E66DC] shadow-[0_0_12px_rgba(82,120,232,0.7)] ring-1 ring-[#AAB9ED]';
           textStyleClass = 'text-white font-black';
         }
 
@@ -382,11 +382,11 @@ const YearView = ({
       {heatmapEnabled && (
         <div className="p-3.5 sm:p-4 rounded-2xl bg-[#141416] border border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.9)] animate-pulse" />
+            <div className="w-3 h-3 rounded-full bg-[#5278E8] shadow-[0_0_10px_rgba(82,120,232,0.9)] animate-pulse" />
             <div>
               <div className="flex items-center gap-2">
                 <h4 className="text-[13px] font-bold text-white tracking-wide">Year Activity Heatmap</h4>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30">Active</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#5278E8]/20 text-[#AAB9ED] border border-[#5278E8]/30">Active</span>
               </div>
               <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
                 Workload & focus intensity across {year}
@@ -397,11 +397,11 @@ const YearView = ({
           <div className="flex items-center gap-2 text-[11px] text-neutral-400 font-mono">
             <span className="text-neutral-500">Less</span>
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0C0C0E] rounded-xl border border-white/[0.08]">
-              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#16161A] border border-white/[0.08]" title="None: 0 tasks, 0h focus" />
-              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#1E3A8A]" title="Light: <= 2 tasks or < 2h focus" />
-              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#1D4ED8]" title="Moderate: <= 4 tasks or < 4h focus" />
-              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#2563EB]" title="Heavy: <= 6 tasks or < 6h focus" />
-              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#3B82F6] shadow-[0_0_8px_rgba(59,130,246,0.8)]" title="Peak: 10+ tasks or 10+ hrs focus" />
+              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#E5E8F7] border border-black/10" title="None: 0 tasks, 0h focus" />
+              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#C6CEF0] border border-black/10" title="Light: <= 2 tasks or < 2h focus" />
+              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#AAB9ED] border border-black/10" title="Moderate: <= 4 tasks or < 4h focus" />
+              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#819BE8] border border-black/10" title="Heavy: <= 6 tasks or < 6h focus" />
+              <div className="w-3.5 h-3.5 rounded-[4px] bg-[#5278E8] shadow-[0_0_8px_rgba(82,120,232,0.8)]" title="Peak: 10+ tasks or 10+ hrs focus" />
             </div>
             <span className="text-neutral-300 font-bold">More</span>
           </div>

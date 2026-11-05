@@ -321,7 +321,8 @@ const Analytics = () => {
     }
 
     const chartConfig = { hours: { label: "Focus Hours", color: "blue" } };
-    const firstName = profile.name ? profile.name.split(' ')[0] : 'Hustler';
+    const rawName = profile.name ? profile.name.trim().split(' ')[0] : 'Hustler';
+    const formattedName = rawName ? (rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase()) : 'Hustler';
     const totalFocusDays = heatmapData.filter(d => (d.intensity > 0 || d.hours > 0)).length;
 
     return (
@@ -371,7 +372,7 @@ const Analytics = () => {
                                     style={{ display: "inline-block", whiteSpace: "nowrap" }}
                                     className="pixel-gradient-text leading-none mt-2"
                                 >
-                                    hello {firstName.toLowerCase()}
+                                    Hello {formattedName}
                                 </motion.span>
                             </h1>
                         </div>

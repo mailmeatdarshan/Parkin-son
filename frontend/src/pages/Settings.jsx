@@ -353,8 +353,8 @@ const ToggleSwitch = memo(({ enabled, onChange, label }) => (
         onClick={() => onChange(!enabled)}
         className="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border border-white/[0.1] transition-all duration-200 ease-in-out focus:outline-none p-0.5"
         style={{
-            backgroundColor: enabled ? '#3B82F6' : '#222222',
-            boxShadow: enabled ? '0 0 14px rgba(59, 130, 246, 0.4)' : 'none',
+            backgroundColor: enabled ? '#5278E8' : '#222222',
+            boxShadow: enabled ? '0 0 14px rgba(82, 120, 232, 0.45)' : 'none',
         }}
         title={label || (enabled ? 'Enabled' : 'Disabled')}
     >

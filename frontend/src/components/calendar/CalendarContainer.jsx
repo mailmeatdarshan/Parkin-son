@@ -597,12 +597,12 @@ const CalendarContainer = () => {
             <div 
               className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono border transition-all ${
                 calendarYearHeatmap 
-                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' 
+                  ? 'bg-[#5278E8]/10 text-[#819BE8] border-[#5278E8]/30' 
                   : 'bg-[#121212] text-neutral-400 border-white/[0.08]'
               }`}
               title={calendarYearHeatmap ? "Heatmap is enabled in Settings" : "Heatmap is disabled in Settings"}
             >
-              <span className={`w-2 h-2 rounded-full ${calendarYearHeatmap ? 'bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-neutral-600'}`} />
+              <span className={`w-2 h-2 rounded-full ${calendarYearHeatmap ? 'bg-[#5278E8] shadow-[0_0_8px_rgba(82,120,232,0.8)]' : 'bg-neutral-600'}`} />
               <span>Heatmap {calendarYearHeatmap ? 'ON' : 'OFF'}</span>
             </div>
           )}
