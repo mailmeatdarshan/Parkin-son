@@ -110,8 +110,15 @@ const Workspace = () => {
             for (const dayId of Object.keys(tasksByDay)) {
                 for (const task of tasksByDay[dayId]) {
                     if (!(task._id in updated)) {
-                        try { updated[task._id] = await decryptData(task.encryptedDescription); } 
-                        catch (err) { updated[task._id] = "⚠️ Decryption Failed"; }
+                        if (task.encryptedDescription) {
+                            try { 
+                                updated[task._id] = await decryptData(task.encryptedDescription); 
+                            } catch (err) { 
+                                updated[task._id] = task.title || "⚠️ Decryption Failed"; 
+                            }
+                        } else {
+                            updated[task._id] = task.title || "Untitled Task";
+                        }
                         changed = true;
                     }
                 }
@@ -260,10 +267,19 @@ const Workspace = () => {
             const encryptedDescription = await encryptData(plaintext);
             const res = await apiFetch("/api/task/addtask", {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ daySessionId: dayId, encryptedDescription, encryptedAESKey: "e2e_v2" }),
+                body: JSON.stringify({ 
+                    daySessionId: dayId, 
+                    title: plaintext, 
+                    encryptedDescription, 
+                    encryptedAESKey: "e2e_v2" 
+                }),
                 credentials: "include"
             });
             if (res.ok) {
+                const data = await res.json().catch(() => null);
+                if (data?.task?._id) {
+                    setDecryptedTexts(prev => ({ ...prev, [data.task._id]: plaintext }));
+                }
                 fetchTasks(dayId);
                 await apiFetch(`/api/session/day/${dayId}`, {
                     method: "PATCH", headers: { "Content-Type": "application/json" },

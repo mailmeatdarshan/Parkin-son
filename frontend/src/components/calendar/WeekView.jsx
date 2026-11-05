@@ -18,6 +18,7 @@ const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const WeekView = ({
   currentDate,
   tasks,
+  decryptedTitles,
   onTaskMove,
   onTaskResize,
   onTaskToggle,
@@ -229,6 +230,7 @@ const WeekView = ({
                     <CalendarEventCard
                       key={item.event._id}
                       layoutItem={item}
+                      decryptedTitle={decryptedTitles?.[item.event._id]}
                       onTaskMove={onTaskMove}
                       onTaskResize={onTaskResize}
                       onTaskToggle={onTaskToggle}
