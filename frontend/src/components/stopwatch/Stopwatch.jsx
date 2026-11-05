@@ -1,12 +1,69 @@
 import React, { useState, useEffect, useCallback, useRef, memo, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, RotateCcw, Save, Target, ChevronDown, Check, X, Clock } from 'lucide-react';
+import { 
+    Play, 
+    Pause, 
+    ArrowCounterClockwise, 
+    FloppyDisk, 
+    Target, 
+    CaretDown, 
+    Check, 
+    X, 
+    Clock, 
+    Timer, 
+    Hourglass, 
+    Coffee, 
+    FastForward 
+} from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { DitherButton } from "../dither-kit/button";
 import Sidebar from '../../components/Sidebar/Sidebar'; // Import tera naya Sidebar component
 import { apiFetch } from '../../apiClient';
 import { useCrypto } from '../../context/CryptoContext';
+
+const POMODORO_DURATIONS = {
+    focus: 25 * 60,       // 1500s (25 mins)
+    shortBreak: 5 * 60,   // 300s (5 mins)
+    longBreak: 15 * 60,   // 900s (15 mins)
+};
+
+// Web Audio Chime on Pomodoro / Break Completion
+const playChime = () => {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+        const now = ctx.currentTime;
+        
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now); // D5
+        gain1.gain.setValueAtTime(0.18, now);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 1.2);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, now + 0.12); // A5
+        gain2.gain.setValueAtTime(0.18, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 1.6);
+    } catch (e) {
+        console.warn("Audio chime error:", e);
+    }
+};
 
 // THE ULTIMATE ZERO-RENDER STORE ENGINE (ATOMIC STATE) 
 function createStore(initialState) {
@@ -31,7 +88,19 @@ function createStore(initialState) {
     return store;
 }
 
-const timerStore = createStore({ isRunning: false, time: 0, taskName: "", selectedTaskId: null, strictMode: false, sessionId: null, showSaveModal: false });
+const timerStore = createStore({ 
+    isRunning: false, 
+    time: 0, 
+    timerMode: 'stopwatch',         // 'stopwatch' | 'pomodoro'
+    pomodoroPhase: 'focus',         // 'focus' | 'shortBreak' | 'longBreak'
+    pomodoroCycles: 0,              // 0 to 4
+    initialDuration: 0, 
+    taskName: "", 
+    selectedTaskId: null, 
+    strictMode: false, 
+    sessionId: null, 
+    showSaveModal: false 
+});
 const statsStore = createStore({ totalDaytime: 0, totalSessions: 0, todaySessions: [] }); 
 const toastStore = createStore({ toasts: [] }); 
 
@@ -102,7 +171,7 @@ const ToastOverlay = memo(() => {
                         className="bg-[#22262B] text-[#E0E0E0] px-6 py-3.5 rounded-2xl shadow-2xl border border-white/10 font-medium text-[14px] flex items-center gap-3 backdrop-blur-xl"
                         style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5)' }}
                     >
-                        {t.message.includes("Saved") ? <Target size={16} className="text-[#34D399]" /> : <Play size={16} className="text-[#60A5FA]" />}
+                        {t.message.includes("Saved") ? <Target size={16} weight="bold" className="text-[#34D399]" /> : <Play size={16} weight="fill" className="text-[#60A5FA]" />}
                         {t.message}
                     </motion.div>
                 ))}
@@ -111,12 +180,106 @@ const ToastOverlay = memo(() => {
     );
 });
 
-const Header = memo(() => (
-    <div className="w-full mb-4 md:mb-8 mt-2 flex-shrink-0 pl-[48px] md:pl-0">
-        <h1 className="text-xl md:text-[34px] font-bold tracking-tight text-[#E0E0E0] leading-none">Focus Session</h1>
-        <p className="hidden sm:block text-[15px] md:text-[17px] text-[#A3A3A3] mt-2 font-medium">Track and save your deep work intervals.</p>
-    </div>
-));
+const switchTimerMode = (newMode) => {
+    const state = timerStore.getState();
+    if (state.timerMode === newMode) return;
+
+    if (state.isRunning) {
+        if (state.timerMode === 'stopwatch') {
+            handleStopBackend(state.sessionId, false, state.time, state.taskName);
+        } else if (state.pomodoroPhase === 'focus') {
+            const elapsed = Math.max(0, (state.initialDuration || 1500) - state.time);
+            handleStopBackend(state.sessionId, false, elapsed, state.taskName);
+        }
+    }
+
+    if (newMode === 'pomodoro') {
+        const phaseDuration = POMODORO_DURATIONS[state.pomodoroPhase] || POMODORO_DURATIONS.focus;
+        timerStore.setState({
+            timerMode: 'pomodoro',
+            isRunning: false,
+            time: phaseDuration,
+            initialDuration: phaseDuration,
+            sessionId: null,
+        });
+        showToast("Switched to Pomodoro");
+    } else {
+        timerStore.setState({
+            timerMode: 'stopwatch',
+            isRunning: false,
+            time: 0,
+            initialDuration: 0,
+            sessionId: null,
+        });
+        showToast("Switched to Stopwatch");
+    }
+};
+
+const switchPomodoroPhase = (phase) => {
+    const state = timerStore.getState();
+    if (state.isRunning) {
+        if (state.pomodoroPhase === 'focus') {
+            const elapsed = Math.max(0, (state.initialDuration || 1500) - state.time);
+            handleStopBackend(state.sessionId, false, elapsed, state.taskName);
+        }
+    }
+    const newDuration = POMODORO_DURATIONS[phase] || POMODORO_DURATIONS.focus;
+    timerStore.setState({
+        pomodoroPhase: phase,
+        time: newDuration,
+        initialDuration: newDuration,
+        isRunning: false,
+        sessionId: null,
+    });
+};
+
+const Header = memo(() => {
+    const timerMode = useTimer(s => s.timerMode);
+
+    return (
+        <div className="w-full mb-4 md:mb-8 mt-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-[48px] md:pl-0">
+            <div>
+                <h1 className="text-xl md:text-[34px] font-bold tracking-tight text-[#E0E0E0] leading-none">
+                    {timerMode === 'pomodoro' ? 'Pomodoro Focus' : 'Focus Session'}
+                </h1>
+                <p className="hidden sm:block text-[14px] md:text-[16px] text-[#A3A3A3] mt-2 font-medium">
+                    {timerMode === 'pomodoro' 
+                        ? 'Structured 25-minute sprints with scheduled recovery breaks.'
+                        : 'Track and save your deep work intervals.'}
+                </p>
+            </div>
+
+            {/* Segmented Mode Switcher */}
+            <div className="flex items-center p-1 rounded-2xl bg-black/60 border border-white/10 self-start sm:self-auto backdrop-blur-md">
+                <button
+                    type="button"
+                    onClick={() => switchTimerMode('stopwatch')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-[13px] font-semibold transition-all cursor-pointer ${
+                        timerMode === 'stopwatch'
+                            ? 'bg-white/15 text-white shadow-sm border border-white/20'
+                            : 'text-neutral-400 hover:text-white border border-transparent'
+                    }`}
+                >
+                    <Timer size={15} weight="bold" className="shrink-0" />
+                    <span>Stopwatch</span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => switchTimerMode('pomodoro')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-[13px] font-semibold transition-all cursor-pointer ${
+                        timerMode === 'pomodoro'
+                            ? 'bg-white/15 text-white shadow-sm border border-white/20'
+                            : 'text-neutral-400 hover:text-white border border-transparent'
+                    }`}
+                >
+                    <Hourglass size={15} weight="bold" className="shrink-0" />
+                    <span>Pomodoro</span>
+                </button>
+            </div>
+        </div>
+    );
+});
 
 const TodaySessionsList = memo(() => {
     const todaySessions = useStats(s => s.todaySessions);
@@ -157,7 +320,7 @@ const TodaySessionsList = memo(() => {
             {todaySessions.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={heavyInputStyle}>
-                        <Clock size={22} strokeWidth={1.5} className="text-[#737373]" />
+                        <Clock size={22} weight="regular" className="text-[#737373]" />
                     </div>
                     <h4 className="text-[#E0E0E0] font-semibold text-[14px] mb-1">No Sessions Logged Yet</h4>
                     <p className="text-[12px] text-[#A3A3A3] leading-relaxed max-w-[200px]">
@@ -344,20 +507,24 @@ const TaskInput = memo(() => {
         }
     };
 
+    const timerMode = useTimer(s => s.timerMode);
+    const pomodoroPhase = useTimer(s => s.pomodoroPhase);
+    const isBreak = timerMode === 'pomodoro' && pomodoroPhase !== 'focus';
+
     return (
         <div className="w-full mb-3 md:mb-6 flex-shrink-0 relative" ref={dropdownRef}>
             <div className="flex items-center justify-between mb-2 px-2">
                 <label className="text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-[#A3A3A3] uppercase">
-                    Current Task
+                    {isBreak ? 'Break Session' : 'Current Task'}
                 </label>
-                {pendingTasks.length > 0 && (
+                {!isBreak && pendingTasks.length > 0 && (
                     <button 
                         type="button"
                         onClick={() => setIsOpen(prev => !prev)}
                         className="text-[10px] text-blue-400 hover:text-blue-300 font-bold tracking-wider uppercase transition-colors flex items-center gap-1 cursor-pointer"
                     >
                         <span>{pendingTasks.length} pending today</span>
-                        <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        <CaretDown size={12} weight="bold" className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                 )}
             </div>
@@ -366,12 +533,17 @@ const TaskInput = memo(() => {
                 className="w-full flex items-center gap-2 md:gap-3 rounded-[14px] md:rounded-2xl px-4 py-3 md:px-5 md:py-4 transition-all relative" 
                 style={heavyInputStyle}
             >
-                <Target size={18} className={`flex-shrink-0 md:w-5 md:h-5 ${isRunning ? 'text-[#E0E0E0]' : 'text-[#A3A3A3]'}`} />
+                {isBreak ? (
+                    <Coffee size={18} weight="bold" className="flex-shrink-0 md:w-5 md:h-5 text-emerald-400" />
+                ) : (
+                    <Target size={18} weight="bold" className={`flex-shrink-0 md:w-5 md:h-5 ${isRunning ? 'text-[#E0E0E0]' : 'text-[#A3A3A3]'}`} />
+                )}
                 
                 <input 
                     ref={inputRef}
                     type="text" 
-                    value={taskName} 
+                    value={isBreak ? "" : taskName} 
+                    disabled={isBreak}
                     onChange={(e) => {
                         const val = e.target.value;
                         const matching = pendingTasks.find(t => (t.displayTitle || "").trim().toLowerCase() === val.trim().toLowerCase());
@@ -381,37 +553,45 @@ const TaskInput = memo(() => {
                         });
                     }}
                     onFocus={() => {
-                        if (pendingTasks.length > 0) setIsOpen(true);
+                        if (!isBreak && pendingTasks.length > 0) setIsOpen(true);
                     }}
-                    placeholder="What are you focusing on?" 
-                    className="bg-transparent border-none outline-none text-[#E0E0E0] placeholder:text-[#737373] w-full text-[14px] md:text-[16px] font-medium"
+                    placeholder={
+                        isBreak 
+                            ? pomodoroPhase === 'longBreak' 
+                                ? '☕ Long break: 15 minutes of rest...' 
+                                : '☕ Short break: 5 minutes of rest...' 
+                            : 'What are you focusing on?'
+                    } 
+                    className="bg-transparent border-none outline-none text-[#E0E0E0] placeholder:text-[#737373] w-full text-[14px] md:text-[16px] font-medium disabled:cursor-not-allowed"
                 />
 
                 {/* Clear button if text entered */}
-                {taskName && (
+                {!isBreak && taskName && (
                     <button
                         type="button"
                         onClick={handleClearTask}
-                        className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors shrink-0"
+                        className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors shrink-0 cursor-pointer"
                         title="Clear task"
                     >
-                        <X size={15} />
+                        <X size={15} weight="bold" />
                     </button>
                 )}
 
                 {/* Dropdown toggle button */}
-                <button
-                    type="button"
-                    onClick={() => setIsOpen(prev => !prev)}
-                    className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg border transition-all shrink-0 cursor-pointer ${
-                        isOpen 
-                            ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' 
-                            : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-neutral-400 hover:text-white'
-                    }`}
-                    title="Select today's task"
-                >
-                    <ChevronDown size={15} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
+                {!isBreak && (
+                    <button
+                        type="button"
+                        onClick={() => setIsOpen(prev => !prev)}
+                        className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg border transition-all shrink-0 cursor-pointer ${
+                            isOpen 
+                                ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' 
+                                : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-neutral-400 hover:text-white'
+                        }`}
+                        title="Select today's task"
+                    >
+                        <CaretDown size={14} weight="bold" className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                )}
             </div>
 
             {/* Dropdown Menu */}
@@ -426,7 +606,7 @@ const TaskInput = memo(() => {
                     >
                         <div className="px-4 py-2.5 bg-[#141416] border-b border-white/[0.06] flex items-center justify-between">
                             <span className="text-[11px] font-bold text-[#A3A3A3] uppercase tracking-wider flex items-center gap-1.5">
-                                <Clock size={12} className="text-neutral-400" />
+                                <Clock size={13} weight="bold" className="text-neutral-400" />
                                 Today's Pending Tasks
                             </span>
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-[#0A84FF] border border-blue-500/20">
@@ -468,7 +648,7 @@ const TaskInput = memo(() => {
                                             </div>
 
                                             {isSelected ? (
-                                                <Check size={14} className="text-blue-400 shrink-0" />
+                                                <Check size={14} weight="bold" className="text-blue-400 shrink-0" />
                                             ) : (
                                                 <span className="text-[10px] font-bold text-neutral-500 uppercase">Select</span>
                                             )}
@@ -480,6 +660,74 @@ const TaskInput = memo(() => {
                     </motion.div>
                 )}
             </AnimatePresence>
+        </div>
+    );
+});
+
+const PomodoroBar = memo(() => {
+    const timerMode = useTimer(s => s.timerMode);
+    const pomodoroPhase = useTimer(s => s.pomodoroPhase);
+    const pomodoroCycles = useTimer(s => s.pomodoroCycles);
+
+    if (timerMode !== 'pomodoro') return null;
+
+    const phases = [
+        { key: 'focus', label: 'Focus', time: '25m', icon: Target },
+        { key: 'shortBreak', label: 'Short Break', time: '5m', icon: Coffee },
+        { key: 'longBreak', label: 'Long Break', time: '15m', icon: Hourglass },
+    ];
+
+    return (
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 mb-2 md:mb-5 px-1 flex-shrink-0">
+            {/* Phase Selector Pills */}
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.08] w-full sm:w-auto">
+                {phases.map(p => {
+                    const isActive = pomodoroPhase === p.key;
+                    const IconComp = p.icon;
+                    return (
+                        <button
+                            key={p.key}
+                            type="button"
+                            onClick={() => switchPomodoroPhase(p.key)}
+                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] md:text-[12px] font-semibold transition-all cursor-pointer ${
+                                isActive
+                                    ? p.key === 'focus'
+                                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-sm'
+                                        : p.key === 'shortBreak'
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm'
+                                            : 'bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-sm'
+                                    : 'text-neutral-400 hover:text-white border border-transparent'
+                            }`}
+                        >
+                            <IconComp size={14} weight={isActive ? "fill" : "regular"} />
+                            <span>{p.label}</span>
+                            <span className="text-[10px] opacity-60">({p.time})</span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Cycle Dots Indicator */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                <span className="text-[10px] font-bold tracking-wider uppercase text-neutral-500">
+                    Cycle
+                </span>
+                <div className="flex items-center gap-1.5">
+                    {[0, 1, 2, 3].map(i => (
+                        <div
+                            key={i}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                                i < pomodoroCycles
+                                    ? 'bg-blue-400 shadow-sm shadow-blue-500/50'
+                                    : 'bg-white/10 border border-white/20'
+                            }`}
+                        />
+                    ))}
+                </div>
+                <span className="text-[11px] font-mono text-neutral-400">
+                    {pomodoroCycles}/4
+                </span>
+            </div>
         </div>
     );
 });
@@ -589,43 +837,115 @@ const handleStopBackend = async (sessionId, isFinalSave = false, duration = 0, t
     }
 };
 
+const handlePomodoroComplete = async () => {
+    timerStore.setState({ isRunning: false });
+    playChime();
+
+    const state = timerStore.getState();
+    const phase = state.pomodoroPhase;
+
+    if (phase === 'focus') {
+        const sprintDuration = state.initialDuration || 1500;
+        const newCycles = (state.pomodoroCycles || 0) + 1;
+
+        if (state.selectedTaskId) {
+            timerStore.setState({ 
+                showSaveModal: true,
+                pomodoroCycles: newCycles >= 4 ? 0 : newCycles
+            });
+        } else {
+            await handleStopBackend(state.sessionId, true, sprintDuration, state.taskName || "Pomodoro Focus");
+            showToast("Focus sprint complete! Session saved.");
+            
+            if (newCycles >= 4) {
+                switchPomodoroPhase('longBreak');
+                timerStore.setState({ pomodoroCycles: 0 });
+                showToast("4 Cycles Completed! Take a 15m Long Break.");
+            } else {
+                switchPomodoroPhase('shortBreak');
+                timerStore.setState({ pomodoroCycles: newCycles });
+                showToast(`Cycle ${newCycles}/4 complete! Take a 5m break.`);
+            }
+        }
+    } else {
+        showToast("Break over! Ready for your next focus session?");
+        switchPomodoroPhase('focus');
+    }
+};
+
 const triggerSaveFlow = () => {
     const state = timerStore.getState();
-    if (state.time <= 0) return;
+
+    let durationToSave = 0;
+    if (state.timerMode === 'pomodoro') {
+        if (state.pomodoroPhase !== 'focus') return; // Breaks don't log as focus time
+        durationToSave = Math.max(0, (state.initialDuration || 1500) - state.time);
+    } else {
+        durationToSave = state.time;
+    }
+
+    if (durationToSave <= 0) return;
 
     if (state.isRunning) {
         timerStore.setState({ isRunning: false });
-        handleStopBackend(state.sessionId, false, state.time, state.taskName);
+        handleStopBackend(state.sessionId, false, durationToSave, state.taskName);
     }
 
     if (state.selectedTaskId) {
         timerStore.setState({ showSaveModal: true });
     } else {
-        handleStopBackend(state.sessionId, true, state.time, state.taskName || "Focus Session");
+        handleStopBackend(state.sessionId, true, durationToSave, state.taskName || "Focus Session");
         showToast("Session Saved Successfully!");
-        timerStore.setState({ 
-            isRunning: false, 
-            time: 0, 
-            taskName: "", 
-            selectedTaskId: null, 
-            sessionId: null, 
-            showSaveModal: false 
-        });
+        if (state.timerMode === 'pomodoro') {
+            const nextCycles = (state.pomodoroCycles || 0) + 1;
+            if (nextCycles >= 4) {
+                switchPomodoroPhase('longBreak');
+                timerStore.setState({ pomodoroCycles: 0, taskName: "", selectedTaskId: null, showSaveModal: false });
+            } else {
+                switchPomodoroPhase('shortBreak');
+                timerStore.setState({ pomodoroCycles: nextCycles, taskName: "", selectedTaskId: null, showSaveModal: false });
+            }
+        } else {
+            timerStore.setState({ 
+                isRunning: false, 
+                time: 0, 
+                taskName: "", 
+                selectedTaskId: null, 
+                sessionId: null, 
+                showSaveModal: false 
+            });
+        }
     }
 };
 
 const StartPauseButton = memo(() => {
     const isRunning = useTimer(s => s.isRunning);
+
     const handleStartPause = useCallback(() => {
         const state = timerStore.getState();
         const newState = !state.isRunning;
+
+        // If in pomodoro and countdown is at 0, reset to initialDuration before starting
+        if (newState && state.timerMode === 'pomodoro' && state.time <= 0) {
+            const freshDuration = POMODORO_DURATIONS[state.pomodoroPhase] || 1500;
+            timerStore.setState({ time: freshDuration, initialDuration: freshDuration });
+        }
+
         timerStore.setState({ isRunning: newState });
+
         if (newState) {
             showToast("Timer Started");
-            handleStartBackend(state.taskName);
+            if (state.timerMode === 'stopwatch' || state.pomodoroPhase === 'focus') {
+                handleStartBackend(state.taskName);
+            }
         } else {
             showToast("Timer Paused");
-            handleStopBackend(state.sessionId, false, state.time, state.taskName);
+            if (state.timerMode === 'stopwatch') {
+                handleStopBackend(state.sessionId, false, state.time, state.taskName);
+            } else if (state.pomodoroPhase === 'focus') {
+                const elapsed = Math.max(0, (state.initialDuration || 1500) - state.time);
+                handleStopBackend(state.sessionId, false, elapsed, state.taskName);
+            }
         }
     }, []);
 
@@ -640,7 +960,7 @@ const StartPauseButton = memo(() => {
             >
                 <AnimatePresence mode="wait">
                     <motion.div key={isRunning ? 'pause' : 'play'} initial={{ opacity: 0, scale: 0.5, rotate: -45 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.5, rotate: 45 }} transition={{ duration: 0.15 }}>
-                        {isRunning ? <Pause size={20} fill="currentColor" className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" /> : <Play size={20} fill="currentColor" className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />}
+                        {isRunning ? <Pause size={20} weight="fill" className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" /> : <Play size={20} weight="fill" className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />}
                     </motion.div>
                 </AnimatePresence>
                 {isRunning ? 'Pause' : 'Start'}
@@ -650,52 +970,88 @@ const StartPauseButton = memo(() => {
 });
 
 const SaveButton = memo(() => {
-    const hasTime = useTimer(s => s.time > 0);
-    const handleSave = useCallback(() => {
-        triggerSaveFlow();
-    }, []);
+    const timerMode = useTimer(s => s.timerMode);
+    const pomodoroPhase = useTimer(s => s.pomodoroPhase);
+    const time = useTimer(s => s.time);
+    const initialDuration = useTimer(s => s.initialDuration);
+
+    const isBreak = timerMode === 'pomodoro' && pomodoroPhase !== 'focus';
+    const hasWorked = timerMode === 'pomodoro' ? (initialDuration - time > 0) : (time > 0);
+
+    const handleAction = useCallback(() => {
+        if (isBreak) {
+            switchPomodoroPhase('focus');
+            showToast("Break skipped. Ready to focus!");
+        } else {
+            triggerSaveFlow();
+        }
+    }, [isBreak]);
 
     return (
         <motion.button 
-            onClick={handleSave} 
-            disabled={!hasTime} 
+            onClick={handleAction} 
+            disabled={!isBreak && !hasWorked} 
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center gap-2 px-4 sm:px-0 sm:w-36 py-3.5 md:py-5 rounded-[14px] md:rounded-2xl font-medium text-[14px] md:text-[15px] text-[#A3A3A3] hover:text-[#E0E0E0] transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" 
             style={secondaryButtonStyle}
         >
-            <Save size={16} className="md:w-[18px] md:h-[18px]" /> <span className="hidden sm:inline">Save</span>
+            {isBreak ? (
+                <>
+                    <FastForward size={16} weight="bold" className="md:w-[18px] md:h-[18px]" />
+                    <span className="hidden sm:inline">Skip Break</span>
+                </>
+            ) : (
+                <>
+                    <FloppyDisk size={16} weight="bold" className="md:w-[18px] md:h-[18px]" />
+                    <span className="hidden sm:inline">Save</span>
+                </>
+            )}
         </motion.button>
     );
 });
 
 const ResetButton = memo(() => {
-    const hasTime = useTimer(s => s.time > 0);
+    const time = useTimer(s => s.time);
+    const timerMode = useTimer(s => s.timerMode);
+    const initialDuration = useTimer(s => s.initialDuration);
+
+    const canReset = timerMode === 'pomodoro' ? (time !== initialDuration) : (time > 0);
+
     const handleReset = useCallback(() => {
         const state = timerStore.getState();
         
         // Send isReset: true explicitly to backend
-        apiFetch("/api/session/stopwatch/stop", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ sessionId: state.sessionId, isFinalSave: false, isReset: true })
-        });
+        if (state.timerMode === 'stopwatch' || state.pomodoroPhase === 'focus') {
+            apiFetch("/api/session/stopwatch/stop", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ sessionId: state.sessionId, isFinalSave: false, isReset: true })
+            });
+        }
         
-        timerStore.setState({ isRunning: false, time: 0, sessionId: null, showSaveModal: false });
+        if (state.timerMode === 'pomodoro') {
+            const fresh = POMODORO_DURATIONS[state.pomodoroPhase] || 1500;
+            timerStore.setState({ isRunning: false, time: fresh, initialDuration: fresh, sessionId: null, showSaveModal: false });
+        } else {
+            timerStore.setState({ isRunning: false, time: 0, sessionId: null, showSaveModal: false });
+        }
     }, []);
 
     return (
         <motion.button 
             onClick={handleReset} 
-            disabled={!hasTime} 
+            disabled={!canReset} 
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center w-[46px] h-[46px] sm:w-[64px] sm:h-auto py-0 sm:py-5 rounded-[14px] md:rounded-2xl text-[#A3A3A3] hover:text-[#E0E0E0] transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" 
             style={secondaryButtonStyle}
+            title="Reset timer"
         >
-            <RotateCcw size={16} className="md:w-[18px] md:h-[18px]" />
+            <ArrowCounterClockwise size={16} weight="bold" className="md:w-[18px] md:h-[18px]" />
         </motion.button>
     );
 });
+
 const ControlsBar = memo(() => (
     <div className="flex flex-row items-center gap-2 md:gap-4 w-full justify-center mt-auto flex-shrink-0">
         <StartPauseButton />
@@ -715,8 +1071,18 @@ const TimerEngine = memo(() => {
         const startAccumulatedTime = timerStore.getState().time;
         
         const tick = () => {
+            const state = timerStore.getState();
             const elapsedSeconds = Math.floor((Date.now() - startTimestamp) / 1000);
-            timerStore.setState({ time: startAccumulatedTime + elapsedSeconds });
+
+            if (state.timerMode === 'pomodoro') {
+                const remaining = Math.max(0, startAccumulatedTime - elapsedSeconds);
+                timerStore.setState({ time: remaining });
+                if (remaining <= 0) {
+                    handlePomodoroComplete();
+                }
+            } else {
+                timerStore.setState({ time: startAccumulatedTime + elapsedSeconds });
+            }
         };
 
         const workerCode = `
@@ -761,23 +1127,33 @@ const TimerEngine = memo(() => {
 const SystemEffects = memo(() => {
     const isRunning = useTimer(s => s.isRunning);
     const time = useTimer(s => s.time);
+    const timerMode = useTimer(s => s.timerMode);
+    const pomodoroPhase = useTimer(s => s.pomodoroPhase);
 
     useEffect(() => {
         if (isRunning || time > 0) {
             const m = Math.floor(time / 60);
             const s = time % 60;
-            document.title = `(${Math.floor(m/10)}${m%10}:${Math.floor(s/10)}${s%10}) Parkin'son Focus`;
+            const prefix = timerMode === 'pomodoro' 
+                ? pomodoroPhase === 'focus' ? '⏳' : '☕' 
+                : '⏱';
+            document.title = `${prefix} (${Math.floor(m/10)}${m%10}:${Math.floor(s/10)}${s%10}) Parkin'son Focus`;
         } else {
             document.title = "Parkin'son | Focus";
         }
-    }, [isRunning, time]);
+    }, [isRunning, time, timerMode, pomodoroPhase]);
 
     useEffect(() => {
         const handleVisibilityChange = () => {
             const state = timerStore.getState();
             if (state.strictMode && document.visibilityState === 'hidden' && state.isRunning) {
                 timerStore.setState({ isRunning: false });
-                handleStopBackend(state.sessionId, false, state.time, state.taskName);
+                if (state.timerMode === 'stopwatch') {
+                    handleStopBackend(state.sessionId, false, state.time, state.taskName);
+                } else if (state.pomodoroPhase === 'focus') {
+                    const elapsed = Math.max(0, (state.initialDuration || 1500) - state.time);
+                    handleStopBackend(state.sessionId, false, elapsed, state.taskName);
+                }
                 showToast("Timer Paused (Strict Mode)");
             }
         };
@@ -793,21 +1169,42 @@ const SystemEffects = memo(() => {
             if (e.code === 'Space') { 
                 e.preventDefault(); 
                 const newState = !state.isRunning;
+                if (newState && state.timerMode === 'pomodoro' && state.time <= 0) {
+                    const fresh = POMODORO_DURATIONS[state.pomodoroPhase] || 1500;
+                    timerStore.setState({ time: fresh, initialDuration: fresh });
+                }
                 timerStore.setState({ isRunning: newState }); 
                 if (newState) {
                     showToast("Timer Started");
-                    handleStartBackend(state.taskName);
+                    if (state.timerMode === 'stopwatch' || state.pomodoroPhase === 'focus') {
+                        handleStartBackend(state.taskName);
+                    }
                 } else {
                     showToast("Timer Paused");
-                    handleStopBackend(state.sessionId, false, state.time, state.taskName);
+                    if (state.timerMode === 'stopwatch') {
+                        handleStopBackend(state.sessionId, false, state.time, state.taskName);
+                    } else if (state.pomodoroPhase === 'focus') {
+                        const elapsed = Math.max(0, (state.initialDuration || 1500) - state.time);
+                        handleStopBackend(state.sessionId, false, elapsed, state.taskName);
+                    }
                 }
             } 
             else if (e.code === 'Escape') { 
                 e.preventDefault(); 
                 if (state.isRunning) {
-                    handleStopBackend(state.sessionId, false, state.time, state.taskName);
+                    if (state.timerMode === 'stopwatch') {
+                        handleStopBackend(state.sessionId, false, state.time, state.taskName);
+                    } else if (state.pomodoroPhase === 'focus') {
+                        const elapsed = Math.max(0, (state.initialDuration || 1500) - state.time);
+                        handleStopBackend(state.sessionId, false, elapsed, state.taskName);
+                    }
                 }
-                timerStore.setState({ isRunning: false, time: 0, sessionId: null, showSaveModal: false }); 
+                if (state.timerMode === 'pomodoro') {
+                    const fresh = POMODORO_DURATIONS[state.pomodoroPhase] || 1500;
+                    timerStore.setState({ isRunning: false, time: fresh, initialDuration: fresh, sessionId: null, showSaveModal: false });
+                } else {
+                    timerStore.setState({ isRunning: false, time: 0, sessionId: null, showSaveModal: false });
+                }
             } 
             else if (e.code === 'Enter') {
                 e.preventDefault();
@@ -823,12 +1220,18 @@ const SystemEffects = memo(() => {
 const SaveModal = memo(() => {
     const showSaveModal = useTimer(s => s.showSaveModal);
     const time = useTimer(s => s.time);
+    const initialDuration = useTimer(s => s.initialDuration);
+    const timerMode = useTimer(s => s.timerMode);
     const taskName = useTimer(s => s.taskName);
     const selectedTaskId = useTimer(s => s.selectedTaskId);
     const sessionId = useTimer(s => s.sessionId);
     const [isSaving, setIsSaving] = useState(false);
 
     if (!showSaveModal) return null;
+
+    const loggedDuration = timerMode === 'pomodoro'
+        ? ((initialDuration - time > 0) ? (initialDuration - time) : (initialDuration || 1500))
+        : time;
 
     const formatModalDuration = (secs) => {
         if (!secs || secs === 0) return '0s';
@@ -843,6 +1246,13 @@ const SaveModal = memo(() => {
     const handleCompleteAndSave = async () => {
         try {
             setIsSaving(true);
+            const state = timerStore.getState();
+            let durationToSave = state.time;
+            if (state.timerMode === 'pomodoro') {
+                durationToSave = Math.max(0, (state.initialDuration || 1500) - state.time);
+                if (durationToSave <= 0) durationToSave = state.initialDuration || 1500;
+            }
+
             if (selectedTaskId) {
                 await apiFetch(`/api/task/patchtask/${selectedTaskId}`, {
                     method: "PATCH",
@@ -851,16 +1261,28 @@ const SaveModal = memo(() => {
                     body: JSON.stringify({ status: true })
                 });
             }
-            await handleStopBackend(sessionId, true, time, taskName || "Focus Session");
+            await handleStopBackend(sessionId, true, durationToSave, taskName || "Focus Session");
             showToast("Task completed & session saved!");
-            timerStore.setState({ 
-                isRunning: false, 
-                time: 0, 
-                taskName: "", 
-                selectedTaskId: null, 
-                sessionId: null, 
-                showSaveModal: false 
-            });
+
+            if (state.timerMode === 'pomodoro') {
+                const nextCycles = (state.pomodoroCycles || 0) + 1;
+                if (nextCycles >= 4) {
+                    switchPomodoroPhase('longBreak');
+                    timerStore.setState({ pomodoroCycles: 0, taskName: "", selectedTaskId: null, showSaveModal: false });
+                } else {
+                    switchPomodoroPhase('shortBreak');
+                    timerStore.setState({ pomodoroCycles: nextCycles, taskName: "", selectedTaskId: null, showSaveModal: false });
+                }
+            } else {
+                timerStore.setState({ 
+                    isRunning: false, 
+                    time: 0, 
+                    taskName: "", 
+                    selectedTaskId: null, 
+                    sessionId: null, 
+                    showSaveModal: false 
+                });
+            }
         } catch (err) {
             console.error("Failed to complete task and save session", err);
             showToast("Failed to save session");
@@ -872,16 +1294,35 @@ const SaveModal = memo(() => {
     const handleSaveOnly = async () => {
         try {
             setIsSaving(true);
-            await handleStopBackend(sessionId, true, time, taskName || "Focus Session");
+            const state = timerStore.getState();
+            let durationToSave = state.time;
+            if (state.timerMode === 'pomodoro') {
+                durationToSave = Math.max(0, (state.initialDuration || 1500) - state.time);
+                if (durationToSave <= 0) durationToSave = state.initialDuration || 1500;
+            }
+
+            await handleStopBackend(sessionId, true, durationToSave, taskName || "Focus Session");
             showToast("Session saved!");
-            timerStore.setState({ 
-                isRunning: false, 
-                time: 0, 
-                taskName: "", 
-                selectedTaskId: null, 
-                sessionId: null, 
-                showSaveModal: false 
-            });
+
+            if (state.timerMode === 'pomodoro') {
+                const nextCycles = (state.pomodoroCycles || 0) + 1;
+                if (nextCycles >= 4) {
+                    switchPomodoroPhase('longBreak');
+                    timerStore.setState({ pomodoroCycles: 0, taskName: "", selectedTaskId: null, showSaveModal: false });
+                } else {
+                    switchPomodoroPhase('shortBreak');
+                    timerStore.setState({ pomodoroCycles: nextCycles, taskName: "", selectedTaskId: null, showSaveModal: false });
+                }
+            } else {
+                timerStore.setState({ 
+                    isRunning: false, 
+                    time: 0, 
+                    taskName: "", 
+                    selectedTaskId: null, 
+                    sessionId: null, 
+                    showSaveModal: false 
+                });
+            }
         } catch (err) {
             console.error("Failed to save session", err);
             showToast("Failed to save session");
@@ -911,17 +1352,17 @@ const SaveModal = memo(() => {
                     disabled={isSaving}
                     className="absolute top-5 right-5 p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
                 >
-                    <X size={18} />
+                    <X size={18} weight="bold" />
                 </button>
 
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
-                        <Save size={20} />
+                        <FloppyDisk size={20} weight="bold" />
                     </div>
                     <div>
                         <h3 className="text-[17px] font-bold text-white tracking-tight">Save Focus Session</h3>
                         <p className="text-[12px] text-neutral-400 font-mono">
-                            Logged {formatModalDuration(time)}
+                            Logged {formatModalDuration(loggedDuration)}
                         </p>
                     </div>
                 </div>
@@ -946,7 +1387,7 @@ const SaveModal = memo(() => {
                         disabled={isSaving}
                         className="w-full py-3.5 px-4 rounded-xl font-semibold text-[14px] bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 cursor-pointer disabled:opacity-50"
                     >
-                        <Check size={16} />
+                        <Check size={16} weight="bold" />
                         <span>Complete Task & Save</span>
                     </button>
 
@@ -968,6 +1409,7 @@ const FocusCard = memo(() => {
     return (
         <div className="lg:col-span-2 rounded-[24px] md:rounded-[32px] p-5 sm:p-6 md:p-12 flex flex-col relative w-full min-h-[360px] md:h-full md:min-h-0" style={heavyCardStyle}>
             <TaskInput />
+            <PomodoroBar />
             <StrictModeToggle />
             
             <div className="flex-1 flex flex-col justify-center items-center py-2 md:py-8 w-full">
