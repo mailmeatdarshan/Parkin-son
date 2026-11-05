@@ -8,17 +8,54 @@ const taskSchema = new Schema(
     daySessionId: {
       type: Schema.Types.ObjectId,
       ref: "daysessioncreditanils",
-      required: true,
+      required: false,
+    },
+
+    title: {
+      type: String,
+      default: "Untitled Task",
+      trim: true,
     },
 
     encryptedDescription: {
       type: String,
-      required: true,
+      required: false,
     },
 
     encryptedAESKey: {
       type: String,
-      required: true,
+      required: false,
+    },
+
+    startDate: {
+      type: Date,
+      default: null,
+    },
+
+    dueDate: {
+      type: Date,
+      default: null,
+    },
+
+    isAllDay: {
+      type: Boolean,
+      default: false,
+    },
+
+    priority: {
+      type: Number,
+      enum: [0, 1, 3, 5],
+      default: 0, // 0: None, 1: Low, 3: Medium, 5: High
+    },
+
+    color: {
+      type: String,
+      default: "#4772FA",
+    },
+
+    timeZone: {
+      type: String,
+      default: "UTC",
     },
 
     status: {
@@ -34,6 +71,9 @@ const taskSchema = new Schema(
   },
   { timestamps: true }
 );
+
+taskSchema.index({ userId: 1, startDate: 1 });
+taskSchema.index({ userId: 1, status: 1, startDate: 1 });
 
 // ================= INDEXES =================
 

@@ -31,7 +31,7 @@ const ForgotPassword = lazyWithRetry(() => import("./components/loginpages/Forgo
 const Dashboard = lazyWithRetry(() => import("./components/loginpages/Logout.jsx")); 
 const Profile = lazyWithRetry(() => import("./components/Profile/Profile.jsx")); 
 const Workspace = lazyWithRetry(() => import("./components/workspace/Workspace.jsx")); 
-const Calendar = lazyWithRetry(() => import("./components/Calendar/Calendar.jsx")); 
+const Calendar = lazyWithRetry(() => import("./components/calendar/CalendarContainer.jsx")); 
 const Stopwatch = lazyWithRetry(() => import("./components/stopwatch/Stopwatch.jsx"));
 const Analytics = lazyWithRetry(() => import("./components/Analytics/Analytics.jsx"));
 const Leaderboard = lazyWithRetry(() => import("./pages/Leaderboard"));
