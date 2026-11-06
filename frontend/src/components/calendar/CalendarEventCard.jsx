@@ -120,7 +120,7 @@ const CalendarEventCard = ({
         borderLeftColor: isCompleted ? '#71717A' : priorityMeta.color,
       }}
       title={isCompleted ? `${displayTitle} (Completed - cannot be moved)` : undefined}
-      className={`absolute z-20 group rounded-md border-l-[3.5px] border border-white/[0.08] select-none overflow-hidden flex flex-col justify-between transition-all ${
+      className={`absolute ${isResizing ? 'z-20 ring-2 ring-blue-500/80 shadow-lg' : 'z-10'} group rounded-md border-l-[3.5px] border border-white/[0.08] select-none overflow-hidden flex flex-col justify-between transition-all ${
         isCompleted
           ? 'bg-[#202023] opacity-85 cursor-default hover:bg-[#252528]'
           : 'bg-[#242426]/95 hover:bg-[#2C2C2E] cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md'
