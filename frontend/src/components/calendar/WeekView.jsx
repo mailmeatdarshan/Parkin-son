@@ -29,7 +29,6 @@ const WeekView = ({
   onQuickAddTask,
 }) => {
   const containerRef = useRef(null);
-  const scrollWrapperRef = useRef(null);
   const isDraggingRef = useRef(false);
   const [hoverGuide, setHoverGuide] = useState(null); // { dayIndex, slotMinutes }
   const [now, setNow] = useState(new Date());
@@ -54,12 +53,14 @@ const WeekView = ({
 
   // Auto-scroll horizontally to today on mobile
   useEffect(() => {
-    if (isMobile && scrollWrapperRef.current) {
+    if (isMobile && containerRef.current) {
       const todayIdx = weekDays.findIndex((d) => isSameDay(d, new Date()));
       if (todayIdx > 0) {
-        const colWidth = (scrollWrapperRef.current.scrollWidth - 56) / 7;
-        const targetX = todayIdx * colWidth - 24;
-        scrollWrapperRef.current.scrollLeft = Math.max(0, targetX);
+        const gutterWidth = 48; // w-12 = 48px
+        const totalContentWidth = containerRef.current.scrollWidth - gutterWidth;
+        const colWidth = totalContentWidth / 7;
+        const targetX = todayIdx * colWidth;
+        containerRef.current.scrollLeft = Math.max(0, targetX);
       }
     }
   }, [weekDays, isMobile]);
@@ -138,64 +139,64 @@ const WeekView = ({
 
   return (
     <div
-      ref={scrollWrapperRef}
-      className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none overflow-x-auto overflow-y-hidden"
+      ref={containerRef}
+      className="flex-1 overflow-auto relative scroll-smooth bg-[#1A1A1C] select-none"
     >
-      <div className={`${isMobile ? 'min-w-[620px]' : 'min-w-[560px] sm:min-w-0'} flex-1 flex flex-col min-h-0`}>
-        {/* Week Header Row */}
-        <div className="flex shrink-0 border-b border-[#38383A] bg-[#1E1E1E] z-30">
-          {/* Empty spacer for time gutter */}
-          <div className="w-12 sm:w-16 shrink-0 border-r border-[#38383A] text-right pr-2 py-2.5 sm:py-3 text-[10px] sm:text-[11px] font-semibold text-neutral-500">
+      <div className={`${isMobile ? 'min-w-[620px]' : 'min-w-[560px] sm:min-w-0'} flex flex-col`}>
+        {/* Week Header Row - Sticky Top */}
+        <div className="flex shrink-0 border-b border-[#38383A] bg-[#1E1E1E] sticky top-0 z-30">
+          {/* Top-Left Spacer for Time Gutter - Sticky Top & Left */}
+          <div className="w-12 sm:w-16 shrink-0 border-r border-[#38383A] flex items-center justify-center text-[10px] sm:text-[11px] font-semibold text-neutral-500 sticky top-0 left-0 z-40 bg-[#1E1E1E] shadow-[2px_0_8px_rgba(0,0,0,0.4)]">
             GMT
           </div>
 
-        {/* 7 Day Headers */}
-        <div className="flex-1 grid grid-cols-7 divide-x divide-[#38383A]">
-          {weekDays.map((day, idx) => {
-            const isToday = isSameDay(day, now);
-            const isSelected = isSameDay(day, currentDate);
+          {/* 7 Day Headers */}
+          <div className="flex-1 grid grid-cols-7 divide-x divide-[#38383A]">
+            {weekDays.map((day, idx) => {
+              const isToday = isSameDay(day, now);
+              const isSelected = isSameDay(day, currentDate);
 
-            return (
-              <div
-                key={idx}
-                onClick={() => onDaySelect && onDaySelect(day)}
-                className={`py-2 px-1 flex flex-col items-center justify-center cursor-pointer transition-colors hover:bg-white/[0.04] ${
-                  isSelected ? 'bg-white/[0.02]' : ''
-                }`}
-              >
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                  {DAY_NAMES[idx]}
-                </span>
+              return (
                 <div
-                  className={`mt-1 w-7 h-7 flex items-center justify-center rounded-full text-[13px] font-bold transition-all ${
-                    isToday
-                      ? 'bg-[#3B82F6] text-white shadow-[0_0_10px_rgba(59,130,246,0.6)]'
-                      : 'text-[#EBEBF5]'
+                  key={idx}
+                  onClick={() => onDaySelect && onDaySelect(day)}
+                  className={`py-2 px-1 flex flex-col items-center justify-center cursor-pointer transition-colors hover:bg-white/[0.04] ${
+                    isSelected ? 'bg-white/[0.02]' : ''
                   }`}
                 >
-                  {day.getDate()}
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    {DAY_NAMES[idx]}
+                  </span>
+                  <div
+                    className={`mt-1 w-7 h-7 flex items-center justify-center rounded-full text-[13px] font-bold transition-all ${
+                      isToday
+                        ? 'bg-[#3B82F6] text-white shadow-[0_0_10px_rgba(59,130,246,0.6)]'
+                        : 'text-[#EBEBF5]'
+                    }`}
+                  >
+                    {day.getDate()}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* Scrollable Timeline Grid */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-[#1A1A1C]"
-      >
+        {/* Scrollable Timeline Grid */}
         <div className="flex relative" style={{ height: `${TOTAL_DAY_HEIGHT}px` }}>
-          {/* Left Time Gutter */}
-          <div className="w-12 sm:w-16 shrink-0 border-r border-[#38383A] relative bg-[#1E1E1E] z-10">
+          {/* Left Time Gutter - Sticky Left */}
+          <div className="w-12 sm:w-16 shrink-0 border-r border-[#38383A] relative bg-[#1E1E1E] sticky left-0 z-[25] shadow-[2px_0_8px_rgba(0,0,0,0.4)]">
             {HOURS.map((h) => (
               <div
                 key={h}
                 style={{ height: `${HOUR_HEIGHT}px` }}
                 className="relative border-b border-[#38383A]/30 flex items-start justify-end pr-2.5"
               >
-                <span className="text-[11px] font-medium text-neutral-400 -mt-2 bg-[#1E1E1E] px-1">
+                <span
+                  className={`text-[11px] font-medium text-neutral-400 ${
+                    h === 0 ? 'mt-1' : '-mt-2'
+                  } bg-[#1E1E1E] px-1 select-none`}
+                >
                   {String(h).padStart(2, '0')}:00
                 </span>
               </div>
@@ -204,7 +205,7 @@ const WeekView = ({
             {/* Current Time in Theme Blue */}
             {weekDays.some((d) => isSameDay(d, now)) && (
               <div
-                style={{ top: `${currentTop}px` }}
+                style={{ top: `${Math.max(10, currentTop)}px` }}
                 className="absolute right-1 -translate-y-1/2 z-20 pointer-events-none flex items-center justify-end"
               >
                 <span className="text-[11px] font-bold text-[#3B82F6] bg-[#1E1E1E] px-1 rounded shadow-sm border border-[#3B82F6]/30">
@@ -288,7 +289,6 @@ const WeekView = ({
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

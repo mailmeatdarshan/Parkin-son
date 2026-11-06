@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, X, UserCircle, Command, CalendarDays, Timer, BarChart2, Award, Settings2, ChevronsUpDown } from 'lucide-react';
-import { apiFetch } from '../../apiClient';
+import { X, UserCircle, Command, CalendarDays, Timer, BarChart2, Award, Settings2 } from 'lucide-react';
 
 const useIsMobile = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -88,15 +87,6 @@ const CustomSidebarIcon = () => (
     </svg>
 );
 
-const getRandomAvatar = (name) => {
-    const avatarCount = 4;
-    let hash = 0;
-    for (let i = 0; i < (name || 'U').length; i++) {
-        hash = (name || 'U').charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = (Math.abs(hash) % avatarCount) + 1;
-    return `/avatars/avatar${index}.png`;
-};
 
 let globalSidebarOpen = false;
 
@@ -146,21 +136,7 @@ const Sidebar = ({ activePage }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(globalSidebarOpen);
     const sidebarRef = useRef(null);
-    const [profile, setProfile] = useState(null);
     const isMobile = useIsMobile();
-
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const res = await apiFetch("/api/auth/me", { credentials: "include" });
-                if (res.ok) {
-                    const data = await res.json();
-                    setProfile(data.user);
-                }
-            } catch (err) {}
-        };
-        fetchProfile();
-    }, []);
 
     useEffect(() => {
         globalSidebarOpen = isOpen;
@@ -186,24 +162,6 @@ const Sidebar = ({ activePage }) => {
             document.removeEventListener('touchstart', handleClickOutside);
         };
     }, [isOpen]);
-
-       const handleLogout = async () => {
-        try {
-            const res = await apiFetch("/api/auth/logout", { method: "POST", credentials: "include" });
-            if (res.ok) {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.replace("/login");
-            }
-        } catch (error) { 
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.replace("/login"); 
-        }
-    };
-
-    const hasRealImage = profile?.imageUrl && profile.imageUrl.trim() !== '' && !profile.imageUrl.includes('default.png') && !profile.imageUrl.includes('default_avatar');
-    const imgUrl = hasRealImage ? profile.imageUrl : (profile ? getRandomAvatar(profile.name) : null);
 
     const sidebarWidth = isMobile ? 80 : 280;
 
@@ -275,58 +233,7 @@ const Sidebar = ({ activePage }) => {
                 
                 <SidebarMenu activePage={activePage} navigate={navigate} isMobile={isMobile} onClose={() => setIsOpen(false)} />
 
-                <div style={{ marginTop: 'auto', paddingTop: 24, width: '100%', padding: isMobile ? '0 12px' : 0 }}>
-                    <button 
-                        onClick={handleLogout}
-                        title="Click to logout"
-                        style={{ 
-                            width: '100%',
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: isMobile ? 'center' : 'space-between', 
-                            padding: isMobile ? '10px 0' : '10px 14px', 
-                            borderRadius: isMobile ? 24 : 12, 
-                            backgroundColor: '#222224', 
-                            border: '1px solid #2C2C2E',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            textAlign: 'left'
-                        }}
-                        className="hover:bg-white/10 group"
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', justifyContent: 'center' }}>
-                            {imgUrl ? (
-                                <img 
-                                    src={imgUrl} 
-                                    alt="User" 
-                                    style={{ width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
-                                    onError={(e) => { 
-                                        e.target.style.display = 'none'; 
-                                        e.target.nextSibling.style.display = 'flex'; 
-                                    }} 
-                                />
-                            ) : null}
-                            <div style={{ display: imgUrl ? 'none' : 'flex', width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', color: '#D1D5DB', fontWeight: 600, fontSize: 15, flexShrink: 0 }}>
-                                {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
-                            </div>
-                            {!isMobile && (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', overflow: 'hidden' }}>
-                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#F3F4F6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130, fontFamily: "'Inter', sans-serif" }}>
-                                        {profile?.name || 'User Name'}
-                                    </span>
-                                    <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130, fontFamily: "'Inter', sans-serif" }}>
-                                        {profile?.email || 'user@example.com'}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                        {!isMobile && (
-                            <div style={{ color: '#6B7280', flexShrink: 0, paddingRight: 2 }} className="group-hover:text-white transition-colors">
-                                <ChevronsUpDown size={18} strokeWidth={2.5} />
-                            </div>
-                        )}
-                    </button>
-                </div>
+
             </div>
         </>
     );
