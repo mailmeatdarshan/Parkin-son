@@ -93,8 +93,8 @@ const YearView = ({
     const isoDate = `${yyyy}-${mm}-${dd}`;
     const focusHours = sessionHoursMap[isoDate] || 0;
 
-    let intensity = 0;
-    let label = 'None';
+    let intensity;
+    let label;
 
     if (taskCount === 0 && focusHours === 0) {
       intensity = 0;
@@ -326,8 +326,8 @@ const YearView = ({
         // 2 - #AAB9ED
         // 3 - #819BE8
         // 4 - #5278E8
-        let cellStyleClass = '';
-        let textStyleClass = 'text-[#151932] font-semibold';
+        let cellStyleClass;
+        let textStyleClass;
 
         if (activity.intensity === 0) {
           cellStyleClass = 'bg-[#E5E8F7] text-[#151932]';
@@ -411,8 +411,8 @@ const YearView = ({
       const activity = getDayActivity(cellDate);
       const hasEvents = activity.taskCount > 0;
 
-      let cellStyleClass = '';
-      let textStyleClass = '';
+      let cellStyleClass;
+      let textStyleClass;
 
       if (isToday) {
         cellStyleClass = 'bg-gradient-to-tr from-[#FF3B30] to-[#FF453A] text-white shadow-[0_0_10px_rgba(255,59,48,0.5)] font-bold';

@@ -240,7 +240,7 @@ const MonthView = ({
                   const displayTitle = decryptedTitles?.[task._id] || task.title || 'Untitled Task';
 
                   // Soft pastel styling matching user mockup
-                  let pillStyle = '';
+                  let pillStyle;
                   if (isCompleted) {
                     pillStyle = 'bg-white/[0.04] text-neutral-400 line-through border-white/[0.06]';
                   } else if (task.priority === 5) {
