@@ -27,7 +27,7 @@ const SIDEBAR_ITEMS = [
 const SidebarItem = React.memo(({ item, isActive, isHovered, setHoveredItem, navigate, isMobile, onClose }) => {
     const Icon = item.icon;
     return (
-        <div style={{ padding: 0, display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <div style={{ padding: isMobile ? '8px 12px' : '0', display: 'flex', justifyContent: 'center' }}>
             <button 
                 onClick={() => {
                     navigate(`/${item.name.toLowerCase()}`);
@@ -36,41 +36,43 @@ const SidebarItem = React.memo(({ item, isActive, isHovered, setHoveredItem, nav
                 onMouseEnter={() => setHoveredItem(item.name)}
                 style={{ 
                     position: 'relative', 
-                    width: 'calc(100% - 32px)', 
-                    height: 'auto',
-                    padding: isMobile ? '10px 16px' : '12px 20px', 
+                    width: isMobile ? '48px' : 'calc(100% - 32px)', 
+                    height: isMobile ? '48px' : 'auto',
+                    padding: isMobile ? '0' : '12px 20px', 
                     borderRadius: 12, 
                     display: 'flex',
-                    justifyContent: 'flex-start',
+                    justifyContent: isMobile ? 'center' : 'flex-start',
                     alignItems: 'center',
-                    fontSize: isMobile ? 14 : 15, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s ease',
+                    fontSize: 15, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s ease',
                     border: 'none', outline: 'none',
                     backgroundColor: isActive ? '#2A2A2A' : isHovered ? 'rgba(255,255,255,0.06)' : 'transparent', 
                     color: isActive || isHovered ? '#FFFFFF' : '#8A8A8E',
-                    margin: '2px 16px'
+                    margin: isMobile ? '0' : '2px 16px'
                 }}
                 className="group"
             >
                 {isActive && (
                     <motion.div
-                        layoutId="active-indicator"
+                        layoutId={isMobile ? "mobile-active-indicator" : "active-indicator"}
                         style={{ 
                             position: 'absolute', 
-                            left: 0, 
-                            bottom: 0, 
-                            top: 0,
-                            width: 3, 
-                            height: '100%',
-                            borderRadius: 0,
+                            left: isMobile ? '50%' : 0, 
+                            bottom: isMobile ? -6 : 0, 
+                            top: isMobile ? 'auto' : 0,
+                            transform: isMobile ? 'translateX(-50%)' : 'none',
+                            width: isMobile ? 4 : 3, 
+                            height: isMobile ? 4 : '100%',
+                            borderRadius: isMobile ? '50%' : 0,
                             backgroundColor: '#3B82F6', 
+                            boxShadow: isMobile ? '0 0 8px #3B82F6' : 'none',
                             zIndex: 10 
                         }}
                     />
                 )}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, position: 'relative', zIndex: 10 }}>
-                    <Icon size={isMobile ? 18 : 18} className={`transition-transform duration-300 ${isActive || isHovered ? 'scale-110' : ''}`} />
-                    <span>{item.name}</span>
+                    <Icon size={isMobile ? 22 : 18} className={`transition-transform duration-300 ${isActive || isHovered ? 'scale-110' : ''}`} />
+                    {!isMobile && <span>{item.name}</span>}
                 </div>
             </button>
         </div>
@@ -107,7 +109,7 @@ const SidebarMenu = React.memo(({ activePage, navigate, isMobile, onClose }) => 
 
     return (
         <div 
-            style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', margin: '0 -24px', alignItems: 'stretch' }} 
+            style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', margin: isMobile ? '0' : '0 -24px', alignItems: isMobile ? 'center' : 'stretch', gap: isMobile ? 8 : 0 }} 
             onMouseLeave={() => setHoveredItem(activePage)} 
         >
             {SIDEBAR_ITEMS.map((item) => {
@@ -125,7 +127,7 @@ const SidebarMenu = React.memo(({ activePage, navigate, isMobile, onClose }) => 
                             onClose={onClose}
                         />
                         {item.name === 'Stopwatch' && (
-                            <div style={{ padding: '0 24px', margin: '8px 0', width: 'auto' }}>
+                            <div style={{ padding: isMobile ? '0' : '0 24px', margin: '8px 0', width: isMobile ? '32px' : 'auto' }}>
                                 <hr style={{ 
                                     border: 'none', 
                                     borderTop: '2px solid rgba(255,255,255,0.08)', 
@@ -203,7 +205,7 @@ const Sidebar = ({ activePage }) => {
     const hasRealImage = profile?.imageUrl && profile.imageUrl.trim() !== '' && !profile.imageUrl.includes('default.png') && !profile.imageUrl.includes('default_avatar');
     const imgUrl = hasRealImage ? profile.imageUrl : (profile ? getRandomAvatar(profile.name) : null);
 
-    const sidebarWidth = isMobile ? 260 : 280;
+    const sidebarWidth = isMobile ? 80 : 280;
 
     return (
         <>
@@ -228,7 +230,7 @@ const Sidebar = ({ activePage }) => {
                 style={{ 
                     position: 'fixed', inset: 0, zIndex: 40, 
                     backgroundColor: 'rgba(0,0,0,0.6)', 
-                    backdropFilter: 'blur(4px)',
+                    backdropFilter: 'blur(3px)',
                     display: isOpen ? 'block' : 'none' 
                 }}
             />
@@ -240,32 +242,40 @@ const Sidebar = ({ activePage }) => {
                     position: 'fixed', top: 0, left: 0, height: '100vh', width: sidebarWidth, 
                     backgroundColor: '#1C1C1E', 
                     borderRight: '1px solid #2C2C2E', zIndex: 50, 
-                    padding: isMobile ? '20px 20px' : 24, 
-                    display: 'flex', flexDirection: 'column', alignItems: 'stretch',
+                    padding: isMobile ? '24px 0' : 24, 
+                    display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'stretch',
                     transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)', 
                     transform: isOpen ? 'translateX(0)' : 'translateX(-100%)', 
                     boxShadow: '4px 0 24px rgba(0,0,0,0.5)',
                     overflowY: 'auto'
                 }}
             >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 28, width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <img src="/parkinson.svg" alt="Parkin'son Logo" style={{ width: 26, height: 26 }} />
-                        <span style={{ color: '#D1D5DB', fontSize: 20, fontWeight: 700, letterSpacing: '0.15em', fontFamily: "'Pixeloid', sans-serif" }}>Parkin'son</span>
-                    </div>
-                    <button 
-                        onClick={() => setIsOpen(false)} 
-                        style={{ padding: 6, color: '#9CA3AF', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8 }} 
-                        className="hover:text-white hover:bg-white/10 transition-all"
-                        aria-label="Close Navigation"
-                    >
-                        <X size={18} />
-                    </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'space-between', marginTop: 8, marginBottom: 32, width: '100%', padding: isMobile ? '0 12px' : 0 }}>
+                    {!isMobile && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <img src="/parkinson.svg" alt="Parkin'son Logo" style={{ width: 26, height: 26 }} />
+                            <span style={{ color: '#D1D5DB', fontSize: 22, fontWeight: 700, letterSpacing: '0.15em', fontFamily: "'Pixeloid', sans-serif" }}>Parkin'son</span>
+                        </div>
+                    )}
+                    {isMobile ? (
+                        <button 
+                            onClick={() => setIsOpen(false)} 
+                            style={{ padding: 8, color: '#6B7280', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%' }} 
+                            className="hover:text-white hover:bg-white/10 transition-all"
+                            aria-label="Close Navigation"
+                        >
+                            <X size={18} />
+                        </button>
+                    ) : (
+                        <button onClick={() => setIsOpen(false)} style={{ padding: 8, color: '#6B7280', cursor: 'pointer', background: 'none', border: 'none', borderRadius: 8 }} className="hover:text-white transition-colors">
+                            <X size={20} />
+                        </button>
+                    )}
                 </div>
                 
                 <SidebarMenu activePage={activePage} navigate={navigate} isMobile={isMobile} onClose={() => setIsOpen(false)} />
 
-                <div style={{ marginTop: 'auto', paddingTop: 20, width: '100%' }}>
+                <div style={{ marginTop: 'auto', paddingTop: 24, width: '100%', padding: isMobile ? '0 12px' : 0 }}>
                     <button 
                         onClick={handleLogout}
                         title="Click to logout"
@@ -273,9 +283,9 @@ const Sidebar = ({ activePage }) => {
                             width: '100%',
                             display: 'flex', 
                             alignItems: 'center', 
-                            justifyContent: 'space-between', 
-                            padding: '10px 12px', 
-                            borderRadius: 12, 
+                            justifyContent: isMobile ? 'center' : 'space-between', 
+                            padding: isMobile ? '10px 0' : '10px 14px', 
+                            borderRadius: isMobile ? 24 : 12, 
                             backgroundColor: '#222224', 
                             border: '1px solid #2C2C2E',
                             cursor: 'pointer',
@@ -284,33 +294,37 @@ const Sidebar = ({ activePage }) => {
                         }}
                         className="hover:bg-white/10 group"
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', justifyContent: 'center' }}>
                             {imgUrl ? (
                                 <img 
                                     src={imgUrl} 
                                     alt="User" 
-                                    style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
+                                    style={{ width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
                                     onError={(e) => { 
                                         e.target.style.display = 'none'; 
                                         e.target.nextSibling.style.display = 'flex'; 
                                     }} 
                                 />
                             ) : null}
-                            <div style={{ display: imgUrl ? 'none' : 'flex', width: 36, height: 36, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', color: '#D1D5DB', fontWeight: 600, fontSize: 14, flexShrink: 0 }}>
+                            <div style={{ display: imgUrl ? 'none' : 'flex', width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', color: '#D1D5DB', fontWeight: 600, fontSize: 15, flexShrink: 0 }}>
                                 {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', overflow: 'hidden' }}>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: '#F3F4F6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, fontFamily: "'Inter', sans-serif" }}>
-                                    {profile?.name || 'User Name'}
-                                </span>
-                                <span style={{ fontSize: 11, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, fontFamily: "'Inter', sans-serif" }}>
-                                    {profile?.email || 'user@example.com'}
-                                </span>
+                            {!isMobile && (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', overflow: 'hidden' }}>
+                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#F3F4F6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130, fontFamily: "'Inter', sans-serif" }}>
+                                        {profile?.name || 'User Name'}
+                                    </span>
+                                    <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130, fontFamily: "'Inter', sans-serif" }}>
+                                        {profile?.email || 'user@example.com'}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        {!isMobile && (
+                            <div style={{ color: '#6B7280', flexShrink: 0, paddingRight: 2 }} className="group-hover:text-white transition-colors">
+                                <ChevronsUpDown size={18} strokeWidth={2.5} />
                             </div>
-                        </div>
-                        <div style={{ color: '#6B7280', flexShrink: 0, paddingRight: 2 }} className="group-hover:text-white transition-colors">
-                            <ChevronsUpDown size={16} strokeWidth={2.5} />
-                        </div>
+                        )}
                     </button>
                 </div>
             </div>
