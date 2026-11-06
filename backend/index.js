@@ -55,6 +55,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
+  "https://parkin-son.vercel.app",
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
@@ -64,6 +65,7 @@ app.use(
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
         process.env.NODE_ENV !== "production" ||
         (process.env.CLIENT_URL && origin.startsWith(process.env.CLIENT_URL.replace(/\/$/, "")))
       ) {
