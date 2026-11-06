@@ -1,7 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { Command, Timer, Award, UserCircle, LogOut } from "lucide-react";
+import { Command, Timer, Award } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Workspace", path: "/workspace", icon: Command },
@@ -10,12 +9,11 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
-    <aside className="w-64 h-screen bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-between p-4 shrink-0 select-none">
+    <aside className="w-64 h-screen bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-start p-4 shrink-0 select-none">
       {/* 1. App Logo & Brand Header */}
       <div>
         <div className="flex items-center gap-3 px-3 py-4 mb-6">
@@ -50,31 +48,6 @@ export default function Sidebar() {
             );
           })}
         </nav>
-      </div>
-
-      {/* 3. Bottom User Profile Card */}
-      <div className="pt-4 border-t border-zinc-800/80">
-        <div className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800/60 rounded-xl p-2.5">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <img
-              src={user?.avatar || "/parkinson.svg"}
-              alt="Avatar"
-              className="w-8 h-8 rounded-full border border-blue-500/40 object-cover bg-zinc-800 shrink-0"
-            />
-            <div className="truncate">
-              <p className="text-xs font-semibold text-zinc-200 truncate">{user?.name || "User"}</p>
-              <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
-            </div>
-          </div>
-
-          <button
-            onClick={logout}
-            title="Logout"
-            className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
       </div>
     </aside>
   );
