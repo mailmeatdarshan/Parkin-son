@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/parkinson.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parkin'son</title>
+    <!-- Stoic Neoclassical Fonts: Bodoni Moda, Cinzel Decorative, Cinzel, Italiana -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400..900&family=Italiana&display=swap" rel="stylesheet">
+    
+    <style>
+      @font-face {
+        font-family: 'Bodoni Moda';
+        src: url('/fonts/stoic/BodoniModa-Regular.woff2') format('woff2');
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Bodoni Moda';
+        src: url('/fonts/stoic/BodoniModa-Italic.woff2') format('woff2');
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cinzel Decorative';
+        src: url('/fonts/stoic/CinzelDecorative-Bold.woff2') format('woff2'),
+             url('/fonts/stoic/CinzelDecorative-Black.woff2') format('woff2');
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cinzel';
+        src: url('/fonts/stoic/Cinzel-Variable.woff2') format('woff2');
+        font-display: swap;
+      }
+
+      .font-bodoni {
+        font-family: 'Bodoni Moda', 'Playfair Display', Didot, 'Bodoni MT', Georgia, serif !important;
+      }
+      .font-cinzel {
+        font-family: 'Cinzel', Georgia, serif !important;
+      }
+      .font-cinzel-decorative {
+        font-family: 'Cinzel Decorative', 'Bodoni Moda', serif !important;
+      }
+      .font-italiana {
+        font-family: 'Italiana', 'Bodoni Moda', serif !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

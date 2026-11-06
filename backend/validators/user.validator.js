@@ -1,0 +1,46 @@
+const { z } = require("zod");
+
+const userValidSchema = z
+  .object({
+    name: z
+      .string()
+      .min(3, { message: "Name must be at least 3 characters" })
+      .max(50)
+      .trim(),
+    email: z
+      .string({
+        required_error: "Email is required",
+        invalid_type_error: "Email must be a string",
+      })
+      .email({ message: "Email is invalid" }),
+    authProvider: z.enum(["local", "google"]).default("local"),
+    password: z
+      .string()
+      // Yahan se saare strict regex hata diye hain kyunki ye ab HASH receive karega (jo 64 chars ka hota hai)
+      .min(60, { message: "Invalid password hash length" }) 
+      .max(100)
+      .optional(),
+    imageUrl: z.string().optional(),
+
+    // Naye E2E fields taaki Zod inhe allow kare 
+    encryptedDEK_pwd: z.any().optional(),
+    encryptedDEK_rec: z.any().optional(),
+    userSalt: z.string().optional(),
+    recoverySalt: z.string().optional(),
+    pbkdf2Iterations: z.number().optional(),
+    kdf: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.authProvider === "local" && !data.password) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Password is required for local Signup",
+      path: ["password"],
+    },
+  );
+
+module.exports = { userValidSchema };
