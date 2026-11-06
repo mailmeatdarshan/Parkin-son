@@ -272,21 +272,45 @@ router.delete("/day/:id/sessions/reset", async (req, res) => {
 // ZERO-WASTE SECURE STOPWATCH ROUTES 
 // ==========================================
 
+// Helper to find or create today's DaySession
+const getTodayDaySession = async (userId, createIfMissing = true) => {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  const istNow = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+  const istToday = new Date(istNow.toISOString().split("T")[0] + "T00:00:00.000Z");
+
+  let daySession = await dailysessionmodel.findOne({
+    userId,
+    $or: [
+      { date: { $gte: startOfToday, $lte: endOfToday } },
+      { date: istToday },
+    ],
+  });
+
+  if (!daySession && createIfMissing) {
+    daySession = await dailysessionmodel.create({
+      userId,
+      title: "My Workspace",
+      date: istToday,
+      totalDaytime: 0,
+      stopwatchTime: 0,
+      totalSessions: 0,
+      status: "active",
+    });
+  }
+
+  return daySession;
+};
+
 // 12. START STOPWATCH
 router.post("/stopwatch/start", async (req, res) => {
   try {
     const userId = req.user.id;
-    const now = new Date();
-    now.setHours(now.getHours() + 5);
-    now.setMinutes(now.getMinutes() + 30);
-    const today = new Date(now.toISOString().split('T')[0] + "T00:00:00.000Z");
+    const daySession = await getTodayDaySession(userId, true);
 
-    let daySession = await dailysessionmodel.findOne({ userId, date: today });
-    if (!daySession) {
-      daySession = await dailysessionmodel.create({ title: "My Workspace", date: today, userId });
-    }
-
-    const runningSessions = await timermodel.find({ userId, status: "running" });
+    const runningSessions = await timermodel.find({ userId, status: "running", source: "stopwatch" });
     
     if (runningSessions.length > 0) {
         const dailySessionBulkOps = [];
@@ -294,17 +318,10 @@ router.post("/stopwatch/start", async (req, res) => {
 
         for (let r of runningSessions) {
             const d = Math.floor((new Date() - r.startTime) / 1000);
-            
-            // FIX: Only add to stopwatchTime if this session was created by Stopwatch!
-            const incQuery = { totalDaytime: d };
-            if (r.source === "stopwatch") {
-                incQuery.stopwatchTime = d;
-            }
-
             dailySessionBulkOps.push({
                 updateOne: {
                     filter: { _id: r.daySessionId },
-                    update: { $inc: incQuery }
+                    update: { $inc: { totalDaytime: d, stopwatchTime: d } }
                 }
             });
 
@@ -327,6 +344,7 @@ router.post("/stopwatch/start", async (req, res) => {
     const session = await timermodel.create({
       daySessionId: daySession._id,
       userId,
+      taskName: (req.body.taskName && req.body.taskName.trim()) || "Untitled Task",
       startTime: new Date(), 
       status: "running",
       source: "stopwatch"
@@ -338,66 +356,90 @@ router.post("/stopwatch/start", async (req, res) => {
   }
 });
 
-// 13. STOPWATCH STOP (Secure Chunking)
+// 13. STOPWATCH STOP & SAVE (With Permanent Session History)
 router.post("/stopwatch/stop", async (req, res) => {
   try {
     const userId = req.user.id;
-    const { sessionId, isFinalSave, isReset } = req.body;
+    const { sessionId, isFinalSave, isReset, duration, taskName } = req.body;
 
-    const now = new Date();
-    now.setHours(now.getHours() + 5);
-    now.setMinutes(now.getMinutes() + 30);
-    const today = new Date(now.toISOString().split('T')[0] + "T00:00:00.000Z");
-    const daySession = await dailysessionmodel.findOne({ userId, date: today });
-    if (!daySession) return res.status(200).json({ success: true });
+    const daySession = await getTodayDaySession(userId, true);
 
     if (isReset) {
-        if (sessionId) await timermodel.deleteOne({ _id: sessionId });
-        await timermodel.deleteMany({ userId, status: "paused" });
-        return res.status(200).json({ success: true, message: "Timer reset successfully" });
+      if (sessionId) await timermodel.deleteOne({ _id: sessionId });
+      await timermodel.deleteMany({ userId, status: "paused", source: "stopwatch" });
+      return res.status(200).json({ success: true, message: "Timer reset successfully" });
     }
 
-    let currentDuration = 0;
+    // Determine duration to save (frontend duration takes precedence if provided and > 0)
+    let currentDuration = typeof duration === "number" && duration > 0 ? Math.round(duration) : 0;
+
     if (sessionId) {
-        const session = await timermodel.findOne({ _id: sessionId, userId, status: "running" });
-        if (session) {
-            currentDuration = Math.floor((new Date() - session.startTime) / 1000);
-            
-            if (!isFinalSave) {
-                session.duration = (session.duration || 0) + currentDuration;
-                session.status = "paused";
-                await session.save();
-                return res.status(200).json({ success: true, duration: currentDuration });
-            } else {
-                await timermodel.deleteOne({ _id: session._id });
-            }
+      const session = await timermodel.findOne({ _id: sessionId, userId });
+      if (session) {
+        if (!currentDuration && session.startTime) {
+          currentDuration = Math.floor((new Date() - session.startTime) / 1000) + (session.duration || 0);
         }
+        if (!isFinalSave) {
+          session.duration = currentDuration > 0 ? currentDuration : ((session.duration || 0) + Math.floor((new Date() - session.startTime) / 1000));
+          session.status = "paused";
+          await session.save();
+          return res.status(200).json({ success: true, duration: session.duration });
+        } else {
+          if (!currentDuration && session.duration) {
+            currentDuration = session.duration;
+          }
+          await timermodel.deleteOne({ _id: session._id });
+        }
+      }
     }
 
     let totalDurationToSave = currentDuration;
+
     if (isFinalSave) {
-        const pausedSessions = await timermodel.find({ userId, status: "paused", source: "stopwatch" });
+      // Gather any additional paused sessions duration if not already captured
+      const pausedSessions = await timermodel.find({ userId, status: "paused", source: "stopwatch" });
+      if (!totalDurationToSave || totalDurationToSave <= 0) {
         for (let p of pausedSessions) {
-            totalDurationToSave += (p.duration || 0);
+          totalDurationToSave += (p.duration || 0);
         }
+      }
 
-        if (pausedSessions.length > 0) {
-            await timermodel.deleteMany({ userId, status: "paused", source: "stopwatch" });
-        }
+      if (pausedSessions.length > 0) {
+        await timermodel.deleteMany({ userId, status: "paused", source: "stopwatch" });
+      }
 
-        if (totalDurationToSave > 0) {
-            await dailysessionmodel.updateOne(
-                { _id: daySession._id }, 
-                { 
-                    $inc: { 
-                        totalDaytime: totalDurationToSave, 
-                        stopwatchTime: totalDurationToSave,
-                        totalSessions: 1
-                    } 
-                }
-            );
-            invalidateCache("leaderboard_full");
-        }
+      if (totalDurationToSave > 0) {
+        // Create permanent completed session for history log!
+        const completedSession = await timermodel.create({
+          daySessionId: daySession._id,
+          userId,
+          taskName: (taskName && taskName.trim()) || "Focus Session",
+          startTime: new Date(Date.now() - totalDurationToSave * 1000),
+          endTime: new Date(),
+          duration: totalDurationToSave,
+          status: "completed",
+          source: "stopwatch",
+        });
+
+        await dailysessionmodel.updateOne(
+          { _id: daySession._id }, 
+          { 
+            $inc: { 
+              totalDaytime: totalDurationToSave, 
+              stopwatchTime: totalDurationToSave,
+              totalSessions: 1
+            } 
+          }
+        );
+
+        invalidateCache("leaderboard_full");
+
+        return res.status(200).json({
+          success: true,
+          duration: totalDurationToSave,
+          session: completedSession,
+        });
+      }
     }
 
     res.status(200).json({ success: true, duration: totalDurationToSave });
@@ -405,25 +447,54 @@ router.post("/stopwatch/stop", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-// 14. FIX: GET TODAY'S STATS (Only Stopwatch Time!)
+
+// 14. GET TODAY'S STATS & COMPLETED SESSIONS HISTORY
 router.get("/stopwatch/today-stats", async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Use range instead of exact date for safe fetching
-    const now = new Date();
-    now.setHours(now.getHours() + 5);
-    now.setMinutes(now.getMinutes() + 30);
-    const today = new Date(now.toISOString().split('T')[0] + "T00:00:00.000Z");
+    const daySession = await getTodayDaySession(userId, false);
 
-    const daySession = await dailysessionmodel.findOne({ userId, date: today });
-    if (!daySession) return res.status(200).json({ success: true, totalDaytime: 0, totalSessions: 0 });
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const sessionQuery = {
+      userId,
+      source: "stopwatch",
+      status: "completed",
+    };
+
+    if (daySession) {
+      sessionQuery.$or = [
+        { daySessionId: daySession._id },
+        { createdAt: { $gte: startOfToday, $lte: endOfToday } },
+      ];
+    } else {
+      sessionQuery.createdAt = { $gte: startOfToday, $lte: endOfToday };
+    }
+
+    const sessions = await timermodel.find(sessionQuery).sort({ createdAt: -1 });
+
+    let calculatedTime = 0;
+    for (const s of sessions) {
+      calculatedTime += (s.duration || 0);
+    }
+
+    const totalDaytime = (daySession && typeof daySession.stopwatchTime === "number" && daySession.stopwatchTime > 0)
+      ? daySession.stopwatchTime
+      : ((daySession && typeof daySession.totalDaytime === "number" && daySession.totalDaytime > 0)
+          ? daySession.totalDaytime
+          : calculatedTime);
+
+    const totalSessions = (daySession && typeof daySession.totalSessions === "number" && daySession.totalSessions > 0)
+      ? daySession.totalSessions
+      : sessions.length;
 
     res.status(200).json({ 
-        success: true, 
-        // FIX: Ab ye sirf aur sirf stopwatchTime bhejega, workspace ka nahi!
-        totalDaytime: daySession.stopwatchTime || 0, 
-        totalSessions: daySession.totalSessions || 0 
+      success: true, 
+      totalDaytime, 
+      totalSessions,
+      sessions,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -109,7 +109,10 @@ const CalendarEventCard = ({
     <div
       draggable={!isResizing && !isCompleted}
       onDragStart={handleDragStart}
-      onClick={() => onTaskClick && onTaskClick(task)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onTaskClick) onTaskClick(task);
+      }}
       style={{
         top: `${top}px`,
         height: `${currentHeight}px`,

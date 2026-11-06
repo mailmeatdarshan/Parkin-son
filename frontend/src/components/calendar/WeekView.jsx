@@ -24,8 +24,11 @@ const WeekView = ({
   onTaskToggle,
   onTaskClick,
   onDaySelect,
+  onTimeSlotClick,
+  onQuickAddTask,
 }) => {
   const containerRef = useRef(null);
+  const isDraggingRef = useRef(false);
   const [hoverGuide, setHoverGuide] = useState(null); // { dayIndex, slotMinutes }
   const [now, setNow] = useState(new Date());
 
@@ -49,6 +52,7 @@ const WeekView = ({
 
   // Handle Drag Over a column
   const handleDragOver = (e, dayIndex) => {
+    isDraggingRef.current = true;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
 
@@ -63,6 +67,7 @@ const WeekView = ({
     // Only clear if leaving the column
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setHoverGuide(null);
+      isDraggingRef.current = false;
     }
   };
 
@@ -70,6 +75,10 @@ const WeekView = ({
   const handleDrop = (e, dayDate) => {
     e.preventDefault();
     setHoverGuide(null);
+    isDraggingRef.current = true;
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 150);
 
     const rawData = e.dataTransfer.getData('application/json');
     if (!rawData) return;
@@ -89,6 +98,22 @@ const WeekView = ({
       }
     } catch (err) {
       console.error('Error handling drop on week view:', err);
+    }
+  };
+
+  const handleColumnClick = (e, dayDate) => {
+    if (isDraggingRef.current) return;
+    const colRect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - colRect.top;
+    const snappedMinutes = offsetYToSnappedMinutes(offsetY);
+    const hours = Math.floor(snappedMinutes / 60);
+    const mins = snappedMinutes % 60;
+    const timeString = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    const targetDate = setHoursAndMinutes(dayDate, snappedMinutes);
+
+    const callback = onTimeSlotClick || onQuickAddTask;
+    if (callback) {
+      callback(targetDate, timeString, { x: e.clientX, y: e.clientY });
     }
   };
 
@@ -181,30 +206,32 @@ const WeekView = ({
               return (
                 <div
                   key={dayIdx}
+                  onClick={(e) => handleColumnClick(e, dayDate)}
                   onDragOver={(e) => handleDragOver(e, dayIdx)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, dayDate)}
-                  className="relative h-full transition-colors"
+                  className="relative h-full transition-colors cursor-pointer group/col"
+                  title={`Click to schedule task on ${DAY_NAMES[dayIdx]}, ${dayDate.getDate()} at this time`}
                 >
                   {/* Horizontal 1-Hour Lines & 15-Minute Guides */}
                   {HOURS.map((h) => (
                     <div
                       key={h}
                       style={{ height: `${HOUR_HEIGHT}px` }}
-                      className="border-b border-[#38383A]/40 relative"
+                      className="border-b border-[#38383A]/40 relative hover:bg-white/[0.025] transition-colors"
                     >
                       {/* 15m subtle guide lines */}
                       <div
                         style={{ top: `${SLOT_HEIGHT}px` }}
-                        className="absolute inset-x-0 border-b border-white/[0.03]"
+                        className="absolute inset-x-0 border-b border-white/[0.03] pointer-events-none"
                       />
                       <div
                         style={{ top: `${SLOT_HEIGHT * 2}px` }}
-                        className="absolute inset-x-0 border-b border-white/[0.04]"
+                        className="absolute inset-x-0 border-b border-white/[0.04] pointer-events-none"
                       />
                       <div
                         style={{ top: `${SLOT_HEIGHT * 3}px` }}
-                        className="absolute inset-x-0 border-b border-white/[0.03]"
+                        className="absolute inset-x-0 border-b border-white/[0.03] pointer-events-none"
                       />
                     </div>
                   ))}

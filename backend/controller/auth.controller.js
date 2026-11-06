@@ -321,7 +321,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.userId || (req.user && req.user.id) || req.user;
-        const { about, name, email, avatar, newPassword } = req.body;
+        const { about, name, email, avatar, newPassword, dob, expectedLifespan, lifeMilestones } = req.body;
         
         const updateData = {};
         const existingUser = await usermodel.findById(userId).select("+password");
@@ -331,6 +331,9 @@ exports.updateProfile = async (req, res) => {
         
         if (about !== undefined) updateData.about = about;
         if (name) updateData.name = name;
+        if (dob !== undefined) updateData.dob = dob;
+        if (expectedLifespan !== undefined) updateData.expectedLifespan = Number(expectedLifespan) || 90;
+        if (lifeMilestones !== undefined) updateData.lifeMilestones = lifeMilestones;
         
         // If email is changing
         if (email && email.toLowerCase() !== existingUser.email) {

@@ -1,20 +1,25 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
   ChevronRight,
   Plus,
   SlidersHorizontal,
-  Calendar as CalendarIcon,
-  Clock,
-  AlertCircle,
-  X,
 } from 'lucide-react';
+import {
+  CalendarPlus,
+  Check,
+  X,
+  Clock,
+  Sparkle,
+} from '@phosphor-icons/react';
 import { apiFetch } from '../../apiClient';
 import Sidebar from '../Sidebar/Sidebar';
 import WeekView from './WeekView';
 import DayView from './DayView';
 import MonthView from './MonthView';
 import YearView from './YearView';
+import LifeView from './LifeView';
 import ArrangeDrawer from './ArrangeDrawer';
 import {
   getWeekDays,
@@ -23,6 +28,20 @@ import {
   isSameDay,
 } from '../../utils/calendarLayout';
 import { useCrypto } from '../../context/CryptoContext';
+import { useSettings } from '../../context/SettingsContext';
+
+// Stopwatch Brutalist Heavy Card & Input Styles
+const heavyCardStyle = {
+  background: 'linear-gradient(180deg, #111111 0%, #000000 100%)',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 32px 64px rgba(0,0,0,1), 0 0 40px rgba(255,255,255,0.02)',
+};
+
+const heavyInputStyle = {
+  background: '#070707',
+  border: '1px solid rgba(255,255,255,0.06)',
+  boxShadow: 'inset 0 2px 12px rgba(0,0,0,1), 0 1px 0px rgba(255,255,255,0.04)',
+};
 
 const MONTH_NAMES = [
   'January',
@@ -41,6 +60,7 @@ const MONTH_NAMES = [
 
 const CalendarContainer = () => {
   const { isLocked, encryptData, decryptData } = useCrypto();
+  const { calendarYearHeatmap } = useSettings();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('week'); // 'day' | 'week' | 'month' | 'year'
@@ -50,6 +70,28 @@ const CalendarContainer = () => {
   const [unscheduledTasks, setUnscheduledTasks] = useState([]);
   const [decryptedTitles, setDecryptedTitles] = useState({});
   const [loading, setLoading] = useState(false);
+  const [heatmapData, setHeatmapData] = useState([]);
+
+  // Fetch heatmap data for Year View when enabled
+  useEffect(() => {
+    if (view !== 'year' || !calendarYearHeatmap) return;
+    let isMounted = true;
+    const fetchHeatmap = async () => {
+      try {
+        const res = await apiFetch('/api/dashboard/heatmap', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data?.heatmapData) {
+            setHeatmapData(data.heatmapData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching calendar year heatmap data:', err);
+      }
+    };
+    fetchHeatmap();
+    return () => { isMounted = false; };
+  }, [view, calendarYearHeatmap]);
 
   // Decrypt titles whenever tasks or unscheduledTasks update
   useEffect(() => {
@@ -100,6 +142,7 @@ const CalendarContainer = () => {
 
   // Quick New Task Modal State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [popoverPos, setPopoverPos] = useState(null); // { x: number, y: number } | null
   const [modalForm, setModalForm] = useState({
     title: '',
     priority: 0,
@@ -447,8 +490,8 @@ const CalendarContainer = () => {
     });
   };
 
-  // Helper to open Add Task modal prefilled with appropriate date
-  const handleOpenAddModal = (targetDate = null) => {
+  // Helper to open Add Task modal prefilled with appropriate date, time, and cursor position
+  const handleOpenAddModal = (targetDate = null, defaultStartTime = null, clickPos = null) => {
     const dateObj =
       targetDate ||
       selectedDate ||
@@ -460,20 +503,71 @@ const CalendarContainer = () => {
     const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
     const dd = String(dateObj.getDate()).padStart(2, '0');
 
+    let initialTime = '09:00';
+    if (defaultStartTime) {
+      initialTime = defaultStartTime;
+    } else if (targetDate instanceof Date && (targetDate.getHours() !== 0 || targetDate.getMinutes() !== 0)) {
+      initialTime = `${String(targetDate.getHours()).padStart(2, '0')}:${String(targetDate.getMinutes()).padStart(2, '0')}`;
+    }
+
+    setPopoverPos(clickPos || null);
     setModalForm({
       title: '',
       priority: 0,
       color: '#4772FA',
       date: `${yyyy}-${mm}-${dd}`,
-      startTime: '09:00',
+      startTime: initialTime,
       durationMinutes: 60,
       isUnscheduled: false,
     });
     setShowAddModal(true);
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!showAddModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowAddModal(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddModal]);
+
+  // Compute smart popover coordinates beside cursor
+  const popoverCoords = useMemo(() => {
+    if (!popoverPos) {
+      return {
+        top: Math.max(80, window.innerHeight / 2 - 160),
+        left: Math.max(20, window.innerWidth / 2 - 155),
+      };
+    }
+
+    const POPOVER_WIDTH = 310;
+    const POPOVER_HEIGHT = 310;
+
+    let left = popoverPos.x + 14;
+    let top = popoverPos.y - 25;
+
+    // Flip to left of cursor if it overflows right edge
+    if (left + POPOVER_WIDTH > window.innerWidth - 14) {
+      left = popoverPos.x - POPOVER_WIDTH - 14;
+    }
+    if (left < 14) left = 14;
+
+    // Clamp vertically
+    if (top + POPOVER_HEIGHT > window.innerHeight - 14) {
+      top = window.innerHeight - POPOVER_HEIGHT - 14;
+    }
+    if (top < 65) top = 65;
+
+    return { top, left };
+  }, [popoverPos]);
+
   // Format Header Title
   const headerTitle = useMemo(() => {
+    if (view === 'life') {
+      return 'Life in Weeks';
+    }
     const month = MONTH_NAMES[currentDate.getMonth()];
     const year = currentDate.getFullYear();
     if (view === 'day') {
@@ -498,33 +592,35 @@ const CalendarContainer = () => {
             {headerTitle}
           </h1>
 
-          <div className="flex items-center gap-1 ml-2">
-            <button
-              onClick={() => handleNavigate(-1)}
-              className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
-              title="Previous"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={handleToday}
-              className="px-3 py-1 rounded-full bg-[#121212] border border-white/[0.08] text-[12px] font-bold text-[#EBEBF5] hover:text-white hover:bg-white/[0.05] transition-all shadow-sm"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => handleNavigate(1)}
-              className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
-              title="Next"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
+          {view !== 'life' && (
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={() => handleNavigate(-1)}
+                className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
+                title="Previous"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={handleToday}
+                className="px-3 py-1 rounded-full bg-[#121212] border border-white/[0.08] text-[12px] font-bold text-[#EBEBF5] hover:text-white hover:bg-white/[0.05] transition-all shadow-sm"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => handleNavigate(1)}
+                className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
+                title="Next"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right: View Switcher, Arrange Drawer Toggle, Add Button */}
         <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end">
-          {/* Segmented View Switcher: Day | Week | Month | Year */}
+          {/* Segmented View Switcher: Day | Week | Month | Year | Life */}
           <div className="flex bg-[#121212] rounded-full p-1 border border-white/[0.06] shadow-inner">
             <button
               onClick={() => setView('day')}
@@ -566,35 +662,50 @@ const CalendarContainer = () => {
             >
               Year
             </button>
+            <button
+              onClick={() => setView('life')}
+              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+                view === 'life'
+                  ? 'bg-[#3A3A3C] text-white shadow-md'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              Life
+            </button>
           </div>
 
+
           {/* Arrange Tasks Toggle */}
-          <button
-            onClick={() => setIsArrangeOpen(!isArrangeOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
-              isArrangeOpen
-                ? 'bg-[#0A84FF]/20 text-[#0A84FF] border-[#0A84FF]/40 shadow-sm'
-                : 'bg-[#121212] text-neutral-300 border-white/[0.08] hover:bg-white/[0.05]'
-            }`}
-            title="Toggle Arrange Tasks Drawer"
-          >
-            <SlidersHorizontal size={14} />
-            <span className="hidden sm:inline">Arrange</span>
-            {unscheduledTasks.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-[#0A84FF] text-white text-[10px] flex items-center justify-center font-bold">
-                {unscheduledTasks.length}
-              </span>
-            )}
-          </button>
+          {view !== 'life' && (
+            <button
+              onClick={() => setIsArrangeOpen(!isArrangeOpen)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
+                isArrangeOpen
+                  ? 'bg-[#0A84FF]/20 text-[#0A84FF] border-[#0A84FF]/40 shadow-sm'
+                  : 'bg-[#121212] text-neutral-300 border-white/[0.08] hover:bg-white/[0.05]'
+              }`}
+              title="Toggle Arrange Tasks Drawer"
+            >
+              <SlidersHorizontal size={14} />
+              <span className="hidden sm:inline">Arrange</span>
+              {unscheduledTasks.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#0A84FF] text-white text-[10px] flex items-center justify-center font-bold">
+                  {unscheduledTasks.length}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Quick Add Button */}
-          <button
-            onClick={() => handleOpenAddModal()}
-            className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-tr from-[#0A84FF] to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-[12px] font-bold transition-all shadow-md active:scale-95 shrink-0"
-          >
-            <Plus size={16} />
-            <span className="hidden sm:inline">Add Task</span>
-          </button>
+          {view !== 'life' && (
+            <button
+              onClick={() => handleOpenAddModal()}
+              className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-tr from-[#0A84FF] to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-[12px] font-bold transition-all shadow-md active:scale-95 shrink-0"
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">Add Task</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -615,6 +726,7 @@ const CalendarContainer = () => {
                 setCurrentDate(dayDate);
                 setView('day');
               }}
+              onTimeSlotClick={(date, timeStr, clickPos) => handleOpenAddModal(date, timeStr, clickPos)}
             />
           )}
 
@@ -627,6 +739,7 @@ const CalendarContainer = () => {
               onTaskResize={handleTaskResize}
               onTaskToggle={handleTaskToggle}
               onTaskClick={(task) => console.log('Task clicked:', task)}
+              onTimeSlotClick={(date, timeStr, clickPos) => handleOpenAddModal(date, timeStr, clickPos)}
             />
           )}
 
@@ -655,6 +768,8 @@ const CalendarContainer = () => {
               currentDate={currentDate}
               selectedDate={selectedDate}
               tasks={tasks}
+              heatmapEnabled={calendarYearHeatmap}
+              heatmapData={heatmapData}
               onTaskMove={handleTaskMove}
               onSelectMonth={(monthIndex) => {
                 setCurrentDate(new Date(currentDate.getFullYear(), monthIndex, 1));
@@ -674,126 +789,99 @@ const CalendarContainer = () => {
               }}
             />
           )}
+
+          {view === 'life' && (
+            <LifeView />
+          )}
         </div>
 
-        {/* Collapsible Arrange Tasks Drawer */}
-        <ArrangeDrawer
-          isOpen={isArrangeOpen}
-          onClose={() => setIsArrangeOpen(false)}
-          unscheduledTasks={unscheduledTasks}
-          selectedDate={selectedDate}
-          selectedDayTasks={selectedDayTasks}
-          decryptedTitles={decryptedTitles}
-          onCreateTask={handleCreateTask}
-          onToggleTask={handleTaskToggle}
-          onDeleteTask={handleTaskDelete}
-          onUnscheduleTask={handleUnscheduleTask}
-        />
+        {/* Collapsible Arrange Tasks Drawer (hidden in Life in Weeks view) */}
+        {view !== 'life' && (
+          <ArrangeDrawer
+            isOpen={isArrangeOpen}
+            onClose={() => setIsArrangeOpen(false)}
+            unscheduledTasks={unscheduledTasks}
+            selectedDate={selectedDate}
+            selectedDayTasks={selectedDayTasks}
+            decryptedTitles={decryptedTitles}
+            onCreateTask={handleCreateTask}
+            onToggleTask={handleTaskToggle}
+            onDeleteTask={handleTaskDelete}
+            onUnscheduleTask={handleUnscheduleTask}
+          />
+        )}
       </div>
 
-      {/* Quick Add Task Modal */}
-      {showAddModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={() => setShowAddModal(false)}
-        >
-          <div
-            className="bg-[#242426] border border-white/[0.12] w-full max-w-[380px] rounded-2xl p-4 shadow-2xl animate-fade-in relative text-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-[16px] font-bold">New Task</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-neutral-400 hover:text-white"
-              >
-                <X size={18} />
-              </button>
-            </div>
+      {/* Quick Add Task Popover - Styled in Stopwatch Brutalist Theme beside Cursor */}
+      <AnimatePresence>
+        {showAddModal && (
+          <>
+            {/* Minimal Click-Outside Backdrop */}
+            <div
+              className="fixed inset-0 z-40 bg-black/20"
+              onClick={() => setShowAddModal(false)}
+            />
 
-            <form onSubmit={handleModalSubmit} className="flex flex-col gap-3.5 mt-3">
-              <div>
-                <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                  Title
-                </label>
+            {/* Floating Popover Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.65, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.7, y: 8 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 26, mass: 0.65 }}
+              style={{
+                ...heavyCardStyle,
+                top: `${popoverCoords.top}px`,
+                left: `${popoverCoords.left}px`,
+              }}
+              className="fixed z-50 w-[300px] sm:w-[315px] rounded-[22px] p-4 text-white shadow-2xl flex flex-col gap-3 select-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-blue-500/15 border border-blue-500/25 text-blue-400 shrink-0">
+                    <CalendarPlus size={14} weight="bold" />
+                  </div>
+                  <span className="text-[12px] font-bold text-neutral-200 truncate">
+                    {!modalForm.isUnscheduled
+                      ? `${modalForm.startTime} • ${modalForm.durationMinutes}m`
+                      : 'Backlog Task'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                  title="Close (Esc)"
+                >
+                  <X size={15} weight="bold" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleModalSubmit} className="flex flex-col gap-2.5">
+                {/* Title Input */}
                 <input
                   required
                   autoFocus
                   type="text"
                   value={modalForm.title}
                   onChange={(e) => setModalForm({ ...modalForm, title: e.target.value })}
-                  placeholder="Task title..."
-                  className="w-full bg-[#1A1A1C] border border-white/[0.08] rounded-xl px-3 py-2 text-[14px] text-white outline-none focus:border-blue-500"
+                  placeholder="Task title (Enter to save)..."
+                  style={heavyInputStyle}
+                  className="w-full rounded-xl px-3 py-2 text-[13px] text-neutral-100 placeholder:text-neutral-500 outline-none focus:border-blue-500/70 transition-all font-medium"
                 />
-              </div>
 
-              {/* Priority Picker */}
-              <div>
-                <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                  Priority
-                </label>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {[
-                    { p: 0, label: 'None', color: '#9CA3AF' },
-                    { p: 1, label: 'Low', color: '#3B82F6' },
-                    { p: 3, label: 'Med', color: '#F59E0B' },
-                    { p: 5, label: 'High', color: '#EF4444' },
-                  ].map((item) => (
-                    <button
-                      key={item.p}
-                      type="button"
-                      onClick={() => setModalForm({ ...modalForm, priority: item.p })}
-                      className={`py-1.5 rounded-lg text-[12px] font-bold border transition-all ${
-                        modalForm.priority === item.p
-                          ? 'bg-white/10 shadow-sm'
-                          : 'bg-transparent text-neutral-400 border-white/[0.06] hover:text-white'
-                      }`}
-                      style={{
-                        borderColor:
-                          modalForm.priority === item.p ? item.color : undefined,
-                        color: modalForm.priority === item.p ? item.color : undefined,
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Schedule vs Unscheduled Toggle */}
-              <div className="flex items-center justify-between p-2 rounded-xl bg-[#1A1A1C] border border-white/[0.06]">
-                <span className="text-[13px] font-medium text-neutral-300">
-                  Save to Backlog (Unscheduled)
-                </span>
-                <input
-                  type="checkbox"
-                  checked={modalForm.isUnscheduled}
-                  onChange={(e) =>
-                    setModalForm({ ...modalForm, isUnscheduled: e.target.checked })
-                  }
-                  className="w-4 h-4 rounded cursor-pointer accent-[#0A84FF]"
-                />
-              </div>
-
-              {/* Date & Time fields if scheduled */}
-              {!modalForm.isUnscheduled && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[11px] font-bold text-neutral-400 block mb-1">
-                      Date
-                    </label>
+                {/* Date & Time Row (if scheduled) */}
+                {!modalForm.isUnscheduled && (
+                  <div className="grid grid-cols-2 gap-1.5">
                     <input
                       type="date"
                       value={modalForm.date}
                       onChange={(e) => setModalForm({ ...modalForm, date: e.target.value })}
-                      className="w-full bg-[#1A1A1C] border border-white/[0.08] rounded-xl px-2.5 py-1.5 text-[12px] text-white outline-none"
+                      style={heavyInputStyle}
+                      className="w-full rounded-lg px-2.5 py-1 text-[11px] text-neutral-300 outline-none font-mono cursor-pointer"
                     />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-bold text-neutral-400 block mb-1">
-                      Start Time
-                    </label>
                     <input
                       type="time"
                       step="900"
@@ -801,31 +889,123 @@ const CalendarContainer = () => {
                       onChange={(e) =>
                         setModalForm({ ...modalForm, startTime: e.target.value })
                       }
-                      className="w-full bg-[#1A1A1C] border border-white/[0.08] rounded-xl px-2.5 py-1.5 text-[12px] text-white outline-none"
+                      style={heavyInputStyle}
+                      className="w-full rounded-lg px-2.5 py-1 text-[11px] text-neutral-300 outline-none font-mono cursor-pointer"
                     />
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.08] mt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-1.5 rounded-full bg-[#0A84FF] hover:bg-blue-500 text-white text-[13px] font-bold shadow-md transition-colors"
-                >
-                  Create
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                {/* Duration Presets */}
+                {!modalForm.isUnscheduled && (
+                  <div className="flex items-center justify-between pt-0.5">
+                    <span className="text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+                      Duration
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {[
+                        { label: '15m', val: 15 },
+                        { label: '30m', val: 30 },
+                        { label: '45m', val: 45 },
+                        { label: '1h', val: 60 },
+                        { label: '2h', val: 120 },
+                      ].map((d) => (
+                        <button
+                          key={d.val}
+                          type="button"
+                          onClick={() => setModalForm({ ...modalForm, durationMinutes: d.val })}
+                          className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold transition-all cursor-pointer ${
+                            modalForm.durationMinutes === d.val
+                              ? 'bg-blue-600/30 text-blue-400 border border-blue-500/40 shadow-sm'
+                              : 'text-neutral-400 hover:text-white bg-[#070707] border border-white/[0.04]'
+                          }`}
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Priority Selector */}
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+                    Priority
+                  </span>
+                  <div
+                    style={heavyInputStyle}
+                    className="p-0.5 rounded-xl flex items-center gap-0.5"
+                  >
+                    {[
+                      { p: 0, label: 'None', color: '#9CA3AF' },
+                      { p: 1, label: 'Low', color: '#3B82F6' },
+                      { p: 3, label: 'Med', color: '#F59E0B' },
+                      { p: 5, label: 'High', color: '#EF4444' },
+                    ].map((item) => (
+                      <button
+                        key={item.p}
+                        type="button"
+                        onClick={() => setModalForm({ ...modalForm, priority: item.p })}
+                        title={`${item.label} Priority`}
+                        className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                          modalForm.priority === item.p
+                            ? 'bg-white/15 text-white shadow-sm border border-white/20'
+                            : 'text-neutral-500 hover:text-neutral-300 border border-transparent'
+                        }`}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Backlog Toggle */}
+                <div className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <span className="text-[11px] text-neutral-300 font-medium">
+                    Save to Backlog
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalForm({ ...modalForm, isUnscheduled: !modalForm.isUnscheduled })
+                    }
+                    className={`w-8 h-4.5 rounded-full transition-colors p-0.5 flex items-center cursor-pointer ${
+                      modalForm.isUnscheduled ? 'bg-[#0A84FF]' : 'bg-[#2A2A2E]'
+                    }`}
+                  >
+                    <div
+                      className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transform transition-transform ${
+                        modalForm.isUnscheduled ? 'translate-x-3.5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 px-3 rounded-xl font-semibold text-[12px] bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/25 active:scale-95 cursor-pointer"
+                  >
+                    <Check size={14} weight="bold" />
+                    <span>Schedule Task</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="py-2 px-3 rounded-xl font-medium text-[12px] text-neutral-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

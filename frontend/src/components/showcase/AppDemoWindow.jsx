@@ -212,7 +212,8 @@ const MockAnalytics = () => {
     }, []);
 
     const chartConfig = { hours: { label: "Focus Hours", color: "blue" } };
-    const firstName = profile.name ? profile.name.split(' ')[0] : 'Hustler';
+    const rawName = profile.name ? profile.name.trim().split(' ')[0] : 'Hustler';
+    const formattedName = rawName ? (rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase()) : 'Hustler';
 
     return (
         <div className="h-full w-full text-zinc-100 font-sans selection:bg-blue-500/30 overflow-x-hidden pb-0">
@@ -251,7 +252,7 @@ const MockAnalytics = () => {
                                     style={{ display: "inline-block", whiteSpace: "nowrap" }}
                                     className="pixel-gradient-text leading-none mt-2"
                                 >
-                                    hello {firstName.toLowerCase()}
+                                    Hello {formattedName}
                                 </motion.span>
                             </h1>
                         </div>

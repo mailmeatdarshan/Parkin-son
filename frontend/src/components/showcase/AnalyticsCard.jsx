@@ -19,7 +19,7 @@ const AnalyticsCard = () => {
           className="text-2xl font-bold text-blue-400 tracking-widest drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]"
           style={{ fontFamily: "'Pixeloid', monospace" }}
         >
-          hello darshan
+          Hello Darshan
         </h3>
       </div>
 
