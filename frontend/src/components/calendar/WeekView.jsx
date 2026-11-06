@@ -19,6 +19,7 @@ const WeekView = ({
   currentDate,
   tasks,
   decryptedTitles,
+  isMobile = false,
   onTaskMove,
   onTaskResize,
   onTaskToggle,
@@ -28,6 +29,7 @@ const WeekView = ({
   onQuickAddTask,
 }) => {
   const containerRef = useRef(null);
+  const scrollWrapperRef = useRef(null);
   const isDraggingRef = useRef(false);
   const [hoverGuide, setHoverGuide] = useState(null); // { dayIndex, slotMinutes }
   const [now, setNow] = useState(new Date());
@@ -49,6 +51,18 @@ const WeekView = ({
       containerRef.current.scrollTop = targetHour * HOUR_HEIGHT;
     }
   }, [weekDays]);
+
+  // Auto-scroll horizontally to today on mobile
+  useEffect(() => {
+    if (isMobile && scrollWrapperRef.current) {
+      const todayIdx = weekDays.findIndex((d) => isSameDay(d, new Date()));
+      if (todayIdx > 0) {
+        const colWidth = (scrollWrapperRef.current.scrollWidth - 56) / 7;
+        const targetX = todayIdx * colWidth - 24;
+        scrollWrapperRef.current.scrollLeft = Math.max(0, targetX);
+      }
+    }
+  }, [weekDays, isMobile]);
 
   // Handle Drag Over a column
   const handleDragOver = (e, dayIndex) => {
@@ -123,8 +137,11 @@ const WeekView = ({
   const currentTimeString = formatTime24(now);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none overflow-x-auto overflow-y-hidden">
-      <div className="min-w-[560px] sm:min-w-0 flex-1 flex flex-col min-h-0">
+    <div
+      ref={scrollWrapperRef}
+      className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none overflow-x-auto overflow-y-hidden"
+    >
+      <div className={`${isMobile ? 'min-w-[620px]' : 'min-w-[560px] sm:min-w-0'} flex-1 flex flex-col min-h-0`}>
         {/* Week Header Row */}
         <div className="flex shrink-0 border-b border-[#38383A] bg-[#1E1E1E] z-30">
           {/* Empty spacer for time gutter */}
@@ -152,7 +169,7 @@ const WeekView = ({
                 <div
                   className={`mt-1 w-7 h-7 flex items-center justify-center rounded-full text-[13px] font-bold transition-all ${
                     isToday
-                      ? 'bg-gradient-to-tr from-[#FF3B30] to-[#FF453A] text-white shadow-[0_0_12px_rgba(255,59,48,0.5)]'
+                      ? 'bg-[#3B82F6] text-white shadow-[0_0_10px_rgba(59,130,246,0.6)]'
                       : 'text-[#EBEBF5]'
                   }`}
                 >
@@ -184,13 +201,13 @@ const WeekView = ({
               </div>
             ))}
 
-            {/* Current Time in Red (No line across grid) */}
+            {/* Current Time in Theme Blue */}
             {weekDays.some((d) => isSameDay(d, now)) && (
               <div
                 style={{ top: `${currentTop}px` }}
                 className="absolute right-1 -translate-y-1/2 z-20 pointer-events-none flex items-center justify-end"
               >
-                <span className="text-[11px] font-bold text-[#FF3B30] bg-[#1E1E1E] px-1 rounded shadow-sm border border-[#FF3B30]/30">
+                <span className="text-[11px] font-bold text-[#3B82F6] bg-[#1E1E1E] px-1 rounded shadow-sm border border-[#3B82F6]/30">
                   {currentTimeString}
                 </span>
               </div>
@@ -259,6 +276,7 @@ const WeekView = ({
                       key={item.event._id}
                       layoutItem={item}
                       decryptedTitle={decryptedTitles?.[item.event._id]}
+                      isMobile={isMobile}
                       onTaskMove={onTaskMove}
                       onTaskResize={onTaskResize}
                       onTaskToggle={onTaskToggle}
