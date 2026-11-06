@@ -51,9 +51,26 @@ const authLimiter = rateLimit({
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== "production" ||
+        (process.env.CLIENT_URL && origin.startsWith(process.env.CLIENT_URL.replace(/\/$/, "")))
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -87,6 +104,18 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === "production" ? undefined : err.message,
   });
 }); 
+
+// Serve static frontend in production if built
+const path = require("path");
+const fs = require("fs");
+const frontendDist = path.join(__dirname, "../frontend/dist");
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) return next();
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
 
 
 
