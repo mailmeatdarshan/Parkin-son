@@ -241,6 +241,91 @@ const YearView = ({
 
     const cells = [];
 
+    // HEATMAP MODE: Tightly packed contiguous mosaic matching reference image
+    if (heatmapEnabled) {
+      // Empty placeholder cells before 1st of month (invisible spacer)
+      for (let i = 0; i < firstDay; i++) {
+        cells.push(
+          <div key={`empty-prev-${i}`} className="aspect-square w-full pointer-events-none" />
+        );
+      }
+
+      // Current month days as tight square tiles
+      for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = isCurrentMonth && day === currentDayNum;
+        const cellDate = new Date(year, monthIndex, day);
+        const isSelected = selectedDate && isSameDay(cellDate, selectedDate);
+        const dateKey = `${year}-${monthIndex}-${day}`;
+        const isHovered = hoveredDateKey === dateKey;
+
+        const activity = getDayActivity(cellDate);
+
+        // User palette:
+        // 0 - #E5E8F7
+        // 1 - #C6CEF0
+        // 2 - #AAB9ED
+        // 3 - #819BE8
+        // 4 - #5278E8
+        let cellStyleClass = '';
+        let textStyleClass = 'text-[#151932] font-semibold';
+
+        if (activity.intensity === 0) {
+          cellStyleClass = 'bg-[#E5E8F7] text-[#151932]';
+          textStyleClass = 'text-[#151932] font-semibold';
+        } else if (activity.intensity === 1) {
+          cellStyleClass = 'bg-[#C6CEF0] text-[#151932]';
+          textStyleClass = 'text-[#151932] font-semibold';
+        } else if (activity.intensity === 2) {
+          cellStyleClass = 'bg-[#AAB9ED] text-[#151932]';
+          textStyleClass = 'text-[#151932] font-bold';
+        } else if (activity.intensity === 3) {
+          cellStyleClass = 'bg-[#819BE8] text-white shadow-[0_0_8px_rgba(129,155,232,0.4)]';
+          textStyleClass = 'text-white font-bold';
+        } else {
+          cellStyleClass = 'bg-[#5278E8] text-white shadow-[0_0_12px_rgba(82,120,232,0.8)]';
+          textStyleClass = 'text-white font-black';
+        }
+
+        if (isToday) {
+          cellStyleClass += ' ring-2 ring-[#FF3B30] ring-offset-1 ring-offset-[#1A1A1C] z-20';
+        } else if (isSelected) {
+          cellStyleClass += ' ring-2 ring-white ring-offset-1 ring-offset-[#1A1A1C] z-20';
+        }
+
+        if (isHovered) {
+          cellStyleClass += ' ring-2 ring-blue-400 scale-110 z-30 shadow-lg';
+        }
+
+        const cellTitle = `${MONTH_NAMES[monthIndex]} ${day}, ${year}\n• ${activity.taskCount} task${activity.taskCount === 1 ? '' : 's'} scheduled\n• ${formatHours(activity.focusHours)} focus logged\n• Activity: ${activity.label}`;
+
+        cells.push(
+          <div
+            key={`curr-${day}`}
+            onDragOver={(e) => handleDayDragOver(e, dateKey)}
+            onDragLeave={(e) => handleDayDragLeave(e, dateKey)}
+            onDrop={(e) => handleDayDrop(e, cellDate)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onDayClick) onDayClick(cellDate);
+            }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              if (onDayDoubleClick) onDayDoubleClick(cellDate);
+            }}
+            title={cellTitle}
+            className={`aspect-square w-full rounded-[3px] flex items-center justify-center cursor-pointer select-none transition-all duration-100 ${cellStyleClass}`}
+          >
+            <span className={`text-[10px] md:text-[11px] font-sans leading-none select-none ${textStyleClass}`}>
+              {day}
+            </span>
+          </div>
+        );
+      }
+
+      return cells;
+    }
+
+    // STANDARD CALENDAR MODE (when heatmap is disabled)
     // Previous month padding days
     for (let i = firstDay - 1; i >= 0; i--) {
       cells.push(
@@ -266,49 +351,21 @@ const YearView = ({
       const activity = getDayActivity(cellDate);
       const hasEvents = activity.taskCount > 0;
 
-      // Determine cell classes based on whether heatmap mode is enabled
       let cellStyleClass = '';
       let textStyleClass = '';
 
-      if (heatmapEnabled) {
-        if (activity.intensity === 0) {
-          cellStyleClass = 'bg-[#E5E8F7] text-[#151932] border border-[#D0D7F5]';
-          textStyleClass = 'text-[#151932] font-semibold';
-        } else if (activity.intensity === 1) {
-          cellStyleClass = 'bg-[#C6CEF0] text-[#151932] border border-[#B0BCEB]';
-          textStyleClass = 'text-[#151932] font-bold';
-        } else if (activity.intensity === 2) {
-          cellStyleClass = 'bg-[#AAB9ED] text-[#151932] border border-[#91A4E5]';
-          textStyleClass = 'text-[#151932] font-bold';
-        } else if (activity.intensity === 3) {
-          cellStyleClass = 'bg-[#819BE8] text-white border border-[#6B8AE0] shadow-[0_0_8px_rgba(129,155,232,0.35)]';
-          textStyleClass = 'text-white font-bold';
-        } else {
-          // Level 4 (Peak: 10+ tasks or 10+ hrs focus)
-          cellStyleClass = 'bg-[#5278E8] text-white border border-[#3E66DC] shadow-[0_0_12px_rgba(82,120,232,0.7)] ring-1 ring-[#AAB9ED]';
-          textStyleClass = 'text-white font-black';
-        }
-
-        if (isToday) {
-          cellStyleClass += ' ring-2 ring-[#FF3B30] ring-offset-1 ring-offset-[#1A1A1C] z-20';
-        } else if (isSelected) {
-          cellStyleClass += ' ring-2 ring-white ring-offset-1 ring-offset-[#1A1A1C] z-20';
-        }
+      if (isToday) {
+        cellStyleClass = 'bg-gradient-to-tr from-[#FF3B30] to-[#FF453A] text-white shadow-[0_0_10px_rgba(255,59,48,0.5)] font-bold';
+        textStyleClass = 'text-white font-bold';
+      } else if (isSelected) {
+        cellStyleClass = 'bg-blue-500/25 ring-1 ring-blue-400 text-blue-300 font-bold';
+        textStyleClass = 'text-blue-300 font-bold';
+      } else if (hasEvents) {
+        cellStyleClass = 'bg-white/[0.08] group-hover/cell:bg-white/[0.18] text-white font-bold shadow-sm';
+        textStyleClass = 'text-white font-bold';
       } else {
-        // Standard non-heatmap look
-        if (isToday) {
-          cellStyleClass = 'bg-gradient-to-tr from-[#FF3B30] to-[#FF453A] text-white shadow-[0_0_10px_rgba(255,59,48,0.5)] font-bold';
-          textStyleClass = 'text-white font-bold';
-        } else if (isSelected) {
-          cellStyleClass = 'bg-blue-500/25 ring-1 ring-blue-400 text-blue-300 font-bold';
-          textStyleClass = 'text-blue-300 font-bold';
-        } else if (hasEvents) {
-          cellStyleClass = 'bg-white/[0.08] group-hover/cell:bg-white/[0.18] text-white font-bold shadow-sm';
-          textStyleClass = 'text-white font-bold';
-        } else {
-          cellStyleClass = 'text-[#EBEBF5] group-hover/cell:bg-white/[0.08]';
-          textStyleClass = 'text-[#EBEBF5]';
-        }
+        cellStyleClass = 'text-[#EBEBF5] group-hover/cell:bg-white/[0.08]';
+        textStyleClass = 'text-[#EBEBF5]';
       }
 
       if (isHovered) {
@@ -316,9 +373,7 @@ const YearView = ({
         textStyleClass = 'text-white font-extrabold';
       }
 
-      const cellTitle = heatmapEnabled
-        ? `${MONTH_NAMES[monthIndex]} ${day}, ${year}\n• ${activity.taskCount} task${activity.taskCount === 1 ? '' : 's'} scheduled\n• ${formatHours(activity.focusHours)} focus logged\n• Activity: ${activity.label}`
-        : `${MONTH_NAMES[monthIndex]} ${day}, ${year} (Click to view tasks, double-click for day view)`;
+      const cellTitle = `${MONTH_NAMES[monthIndex]} ${day}, ${year} (Click to view tasks, double-click for day view)`;
 
       cells.push(
         <div
@@ -329,27 +384,19 @@ const YearView = ({
           className="flex justify-center items-center cursor-pointer relative z-10 group/cell h-6"
           onClick={(e) => {
             e.stopPropagation();
-            if (onDayClick) {
-              onDayClick(cellDate);
-            }
+            if (onDayClick) onDayClick(cellDate);
           }}
           onDoubleClick={(e) => {
             e.stopPropagation();
-            if (onDayDoubleClick) {
-              onDayDoubleClick(cellDate);
-            }
+            if (onDayDoubleClick) onDayDoubleClick(cellDate);
           }}
           title={cellTitle}
         >
           <div
-            className={`relative flex justify-center items-center w-5 h-5 md:w-6 md:h-6 transition-all ${
-              heatmapEnabled ? 'rounded-[5px]' : 'rounded-full'
-            } ${cellStyleClass}`}
+            className={`relative flex justify-center items-center w-5 h-5 md:w-6 md:h-6 transition-all rounded-full ${cellStyleClass}`}
           >
             <span
-              className={`relative z-10 w-full h-full flex items-center justify-center text-[10px] md:text-[11px] transition-all ${
-                heatmapEnabled ? 'rounded-[5px]' : 'rounded-full'
-              } ${textStyleClass}`}
+              className={`relative z-10 w-full h-full flex items-center justify-center text-[10px] md:text-[11px] transition-all rounded-full ${textStyleClass}`}
             >
               {day}
             </span>
@@ -428,56 +475,68 @@ const YearView = ({
                 <button
                   type="button"
                   onClick={() => onSelectMonth && onSelectMonth(idx)}
-                  className="text-[#FF3B30] font-extrabold text-[15px] md:text-[18px] transition-colors hover:text-[#FF453A] drop-shadow-sm flex items-center gap-1 cursor-pointer"
+                  className={`font-extrabold text-[15px] md:text-[18px] transition-colors drop-shadow-sm flex items-center gap-1 cursor-pointer ${
+                    heatmapEnabled
+                      ? 'text-white hover:text-blue-400'
+                      : 'text-[#FF3B30] hover:text-[#FF453A]'
+                  }`}
                   title={`Open ${month} in Month View`}
                 >
-                  {month}
+                  {heatmapEnabled ? month.slice(0, 3) : month}
                 </button>
 
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const isCurrentMonth =
-                        today.getFullYear() === year && today.getMonth() === idx;
-                      const targetDate = isCurrentMonth
-                        ? today
-                        : new Date(year, idx, 1);
-                      if (onQuickAddTask) {
-                        onQuickAddTask(targetDate);
-                      }
-                    }}
-                    className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
-                    title={`Add task in ${month}`}
-                  >
-                    <Plus size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onSelectMonth && onSelectMonth(idx)}
-                    className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.1] transition-all opacity-70 group-hover:opacity-100 cursor-pointer"
-                    title={`Open ${month} in Month View`}
-                  >
-                    <ChevronRight size={16} strokeWidth={2.5} />
-                  </button>
-                </div>
+                {!heatmapEnabled && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const isCurrentMonth =
+                          today.getFullYear() === year && today.getMonth() === idx;
+                        const targetDate = isCurrentMonth
+                          ? today
+                          : new Date(year, idx, 1);
+                        if (onQuickAddTask) {
+                          onQuickAddTask(targetDate);
+                        }
+                      }}
+                      className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.1] transition-all cursor-pointer"
+                      title={`Add task in ${month}`}
+                    >
+                      <Plus size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onSelectMonth && onSelectMonth(idx)}
+                      className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.1] transition-all opacity-70 group-hover:opacity-100 cursor-pointer"
+                      title={`Open ${month} in Month View`}
+                    >
+                      <ChevronRight size={16} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Days of Week Header */}
-              <div className="grid grid-cols-7 gap-1 mb-1">
-                {DAYS_HEADER.map((d, i) => (
-                  <div
-                    key={`header-${i}`}
-                    className="text-center text-[9px] md:text-[10px] font-bold text-neutral-500"
-                  >
-                    {d}
-                  </div>
-                ))}
-              </div>
+              {/* Days of Week Header - hidden in heatmap mode to match tight mosaic aesthetic */}
+              {!heatmapEnabled && (
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {DAYS_HEADER.map((d, i) => (
+                    <div
+                      key={`header-${i}`}
+                      className="text-center text-[9px] md:text-[10px] font-bold text-neutral-500"
+                    >
+                      {d}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Days Matrix */}
-              <div className="grid grid-cols-7 gap-1">
+              <div
+                className={`grid grid-cols-7 ${
+                  heatmapEnabled ? 'gap-[1.5px] sm:gap-[2px]' : 'gap-1'
+                }`}
+              >
                 {renderMiniMonth(idx)}
               </div>
             </div>

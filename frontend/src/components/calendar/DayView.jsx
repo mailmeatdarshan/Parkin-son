@@ -21,8 +21,11 @@ const DayView = ({
   onTaskResize,
   onTaskToggle,
   onTaskClick,
+  onTimeSlotClick,
+  onQuickAddTask,
 }) => {
   const containerRef = useRef(null);
+  const isDraggingRef = useRef(false);
   const [hoverGuide, setHoverGuide] = useState(null);
   const [now, setNow] = useState(new Date());
 
@@ -42,6 +45,7 @@ const DayView = ({
   }, [currentDate, isToday]);
 
   const handleDragOver = (e) => {
+    isDraggingRef.current = true;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
 
@@ -55,12 +59,17 @@ const DayView = ({
   const handleDragLeave = (e) => {
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setHoverGuide(null);
+      isDraggingRef.current = false;
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setHoverGuide(null);
+    isDraggingRef.current = true;
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 150);
 
     const rawData = e.dataTransfer.getData('application/json');
     if (!rawData) return;
@@ -80,6 +89,22 @@ const DayView = ({
       }
     } catch (err) {
       console.error('Error handling drop on day view:', err);
+    }
+  };
+
+  const handleColumnClick = (e) => {
+    if (isDraggingRef.current) return;
+    const colRect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - colRect.top;
+    const snappedMinutes = offsetYToSnappedMinutes(offsetY);
+    const hours = Math.floor(snappedMinutes / 60);
+    const mins = snappedMinutes % 60;
+    const timeString = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    const targetDate = setHoursAndMinutes(currentDate, snappedMinutes);
+
+    const callback = onTimeSlotClick || onQuickAddTask;
+    if (callback) {
+      callback(targetDate, timeString, { x: e.clientX, y: e.clientY });
     }
   };
 
@@ -148,28 +173,30 @@ const DayView = ({
 
           {/* Single Day Column */}
           <div
+            onClick={handleColumnClick}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className="flex-1 relative h-full transition-colors"
+            className="flex-1 relative h-full transition-colors cursor-pointer group/col"
+            title="Click any time slot to schedule a task"
           >
             {HOURS.map((h) => (
               <div
                 key={h}
                 style={{ height: `${HOUR_HEIGHT}px` }}
-                className="border-b border-[#38383A]/40 relative"
+                className="border-b border-[#38383A]/40 relative hover:bg-white/[0.025] transition-colors"
               >
                 <div
                   style={{ top: `${SLOT_HEIGHT}px` }}
-                  className="absolute inset-x-0 border-b border-white/[0.03]"
+                  className="absolute inset-x-0 border-b border-white/[0.03] pointer-events-none"
                 />
                 <div
                   style={{ top: `${SLOT_HEIGHT * 2}px` }}
-                  className="absolute inset-x-0 border-b border-white/[0.04]"
+                  className="absolute inset-x-0 border-b border-white/[0.04] pointer-events-none"
                 />
                 <div
                   style={{ top: `${SLOT_HEIGHT * 3}px` }}
-                  className="absolute inset-x-0 border-b border-white/[0.03]"
+                  className="absolute inset-x-0 border-b border-white/[0.03] pointer-events-none"
                 />
               </div>
             ))}
