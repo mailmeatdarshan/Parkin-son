@@ -153,7 +153,11 @@ const DayView = ({
                 style={{ height: `${HOUR_HEIGHT}px` }}
                 className="relative border-b border-[#38383A]/30 flex items-start justify-end pr-3"
               >
-                <span className="text-[11px] sm:text-[12px] font-medium text-neutral-400 -mt-2 bg-[#1E1E1E] px-1">
+                <span
+                  className={`text-[11px] sm:text-[12px] font-medium text-neutral-400 ${
+                    h === 0 ? 'mt-1' : '-mt-2 sm:-mt-2.5'
+                  } bg-[#1E1E1E] px-1 select-none`}
+                >
                   {String(h).padStart(2, '0')}:00
                 </span>
               </div>
@@ -162,7 +166,7 @@ const DayView = ({
             {/* Current Time in Theme Blue */}
             {isToday && (
               <div
-                style={{ top: `${currentTop}px` }}
+                style={{ top: `${Math.max(10, currentTop)}px` }}
                 className="absolute right-1 -translate-y-1/2 z-20 pointer-events-none flex items-center justify-end"
               >
                 <span className="text-[11px] font-bold text-[#3B82F6] bg-[#1E1E1E] px-1 rounded shadow-sm border border-[#3B82F6]/30">
