@@ -237,7 +237,7 @@ const Header = memo(() => {
     const timerMode = useTimer(s => s.timerMode);
 
     return (
-        <div className="w-full mb-4 md:mb-8 mt-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-[48px] md:pl-0">
+        <div className="w-full mb-4 md:mb-8 mt-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pl-12 sm:pl-14 md:pl-0">
             <div>
                 <h1 className="text-xl md:text-[34px] font-bold tracking-tight text-[#E0E0E0] leading-none">
                     {timerMode === 'pomodoro' ? 'Pomodoro Focus' : 'Focus Session'}
@@ -780,7 +780,7 @@ const DigitSubscriber = memo(({ selector }) => {
 });
 
 const TimerDigits = memo(() => (
-    <div className="text-[64px] sm:text-[90px] md:text-[130px] lg:text-[160px] font-black tabular-nums leading-none flex items-center justify-center select-none text-[#888888] w-full"
+    <div className="text-[44px] xs:text-[54px] sm:text-[80px] md:text-[120px] lg:text-[150px] font-black tabular-nums leading-none flex items-center justify-center select-none text-[#888888] w-full"
         style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif", letterSpacing: '-0.04em' }}>
         <DigitSubscriber selector={s => Math.floor(s.time / 600)} />
         <DigitSubscriber selector={s => Math.floor((s.time / 60) % 10)} />
@@ -1425,7 +1425,7 @@ const FocusCard = memo(() => {
 
 const MainContainer = memo(({ children }) => {
     return (
-        <main className="w-full h-full overflow-hidden flex flex-col justify-start md:justify-center items-center transition-all duration-300 relative z-10">
+        <main className="w-full min-h-full lg:h-full flex flex-col justify-start lg:justify-center items-center transition-all duration-300 relative z-10">
             {children}
         </main>
     );
@@ -1492,11 +1492,10 @@ const Stopwatch = () => {
                 }
             `}</style>
 
-            <div className="h-screen w-full relative overflow-hidden font-mono flex flex-col" style={{ backgroundColor: COLORS.bg, color: COLORS.textPrimary }}>
+            <div className="min-h-screen lg:h-screen w-full relative overflow-y-auto lg:overflow-hidden font-mono flex flex-col" style={{ backgroundColor: COLORS.bg, color: COLORS.textPrimary }}>
                 <ToastOverlay />
                 <SaveModal />
-                <div className="w-full h-full flex flex-col relative z-10"
-                     style={{ paddingTop: 32, paddingBottom: 24, paddingLeft: 'clamp(24px, 5vw, 96px)', paddingRight: 'clamp(24px, 5vw, 96px)' }}>
+                <div className="w-full flex-1 flex flex-col relative z-10 px-3 sm:px-6 md:px-10 lg:px-16 pt-14 sm:pt-16 md:pt-8 pb-8">
                 
                 <MainContainer>
                     <div className="w-full max-w-5xl mx-auto flex flex-col justify-center h-full max-h-full">

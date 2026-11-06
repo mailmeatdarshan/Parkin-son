@@ -123,13 +123,14 @@ const WeekView = ({
   const currentTimeString = formatTime24(now);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none">
-      {/* Week Header Row */}
-      <div className="flex shrink-0 border-b border-[#38383A] bg-[#1E1E1E] z-30">
-        {/* Empty spacer for time gutter */}
-        <div className="w-16 shrink-0 border-r border-[#38383A] text-right pr-2 py-3 text-[11px] font-semibold text-neutral-500">
-          GMT
-        </div>
+    <div className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none overflow-x-auto overflow-y-hidden">
+      <div className="min-w-[560px] sm:min-w-0 flex-1 flex flex-col min-h-0">
+        {/* Week Header Row */}
+        <div className="flex shrink-0 border-b border-[#38383A] bg-[#1E1E1E] z-30">
+          {/* Empty spacer for time gutter */}
+          <div className="w-12 sm:w-16 shrink-0 border-r border-[#38383A] text-right pr-2 py-2.5 sm:py-3 text-[10px] sm:text-[11px] font-semibold text-neutral-500">
+            GMT
+          </div>
 
         {/* 7 Day Headers */}
         <div className="flex-1 grid grid-cols-7 divide-x divide-[#38383A]">
@@ -170,7 +171,7 @@ const WeekView = ({
       >
         <div className="flex relative" style={{ height: `${TOTAL_DAY_HEIGHT}px` }}>
           {/* Left Time Gutter */}
-          <div className="w-16 shrink-0 border-r border-[#38383A] relative bg-[#1E1E1E] z-10">
+          <div className="w-12 sm:w-16 shrink-0 border-r border-[#38383A] relative bg-[#1E1E1E] z-10">
             {HOURS.map((h) => (
               <div
                 key={h}
@@ -270,6 +271,7 @@ const WeekView = ({
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

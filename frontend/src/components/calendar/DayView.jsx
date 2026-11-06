@@ -124,17 +124,17 @@ const DayView = ({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none">
       {/* Day Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-[#38383A] bg-[#1E1E1E] z-30">
-        <div className="flex items-center gap-3">
-          <span className="text-[16px] font-bold text-white">{formattedHeader}</span>
+      <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 border-b border-[#38383A] bg-[#1E1E1E] z-30">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="text-[14px] sm:text-[16px] font-bold text-white truncate">{formattedHeader}</span>
           {isToday && (
-            <span className="bg-red-500/20 text-[#FF3B30] text-[11px] font-bold px-2 py-0.5 rounded-full border border-red-500/30">
+            <span className="bg-red-500/20 text-[#FF3B30] text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border border-red-500/30 shrink-0">
               Today
             </span>
           )}
         </div>
-        <span className="text-[12px] font-medium text-neutral-400">
-          {dayLayout.length} scheduled {dayLayout.length === 1 ? 'task' : 'tasks'}
+        <span className="text-[11px] sm:text-[12px] font-medium text-neutral-400 shrink-0">
+          {dayLayout.length} {dayLayout.length === 1 ? 'task' : 'tasks'}
         </span>
       </div>
 
@@ -145,7 +145,7 @@ const DayView = ({
       >
         <div className="flex relative" style={{ height: `${TOTAL_DAY_HEIGHT}px` }}>
           {/* Left Time Gutter */}
-          <div className="w-20 shrink-0 border-r border-[#38383A] relative bg-[#1E1E1E] z-10">
+          <div className="w-14 sm:w-20 shrink-0 border-r border-[#38383A] relative bg-[#1E1E1E] z-10">
             {HOURS.map((h) => (
               <div
                 key={h}
