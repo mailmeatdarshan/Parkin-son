@@ -15,6 +15,7 @@ import WeekView from './WeekView';
 import DayView from './DayView';
 import MonthView from './MonthView';
 import YearView from './YearView';
+import LifeView from './LifeView';
 import ArrangeDrawer from './ArrangeDrawer';
 import {
   getWeekDays,
@@ -498,6 +499,9 @@ const CalendarContainer = () => {
 
   // Format Header Title
   const headerTitle = useMemo(() => {
+    if (view === 'life') {
+      return 'Life in Weeks';
+    }
     const month = MONTH_NAMES[currentDate.getMonth()];
     const year = currentDate.getFullYear();
     if (view === 'day') {
@@ -522,33 +526,35 @@ const CalendarContainer = () => {
             {headerTitle}
           </h1>
 
-          <div className="flex items-center gap-1 ml-2">
-            <button
-              onClick={() => handleNavigate(-1)}
-              className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
-              title="Previous"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={handleToday}
-              className="px-3 py-1 rounded-full bg-[#121212] border border-white/[0.08] text-[12px] font-bold text-[#EBEBF5] hover:text-white hover:bg-white/[0.05] transition-all shadow-sm"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => handleNavigate(1)}
-              className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
-              title="Next"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
+          {view !== 'life' && (
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={() => handleNavigate(-1)}
+                className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
+                title="Previous"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={handleToday}
+                className="px-3 py-1 rounded-full bg-[#121212] border border-white/[0.08] text-[12px] font-bold text-[#EBEBF5] hover:text-white hover:bg-white/[0.05] transition-all shadow-sm"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => handleNavigate(1)}
+                className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
+                title="Next"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right: View Switcher, Arrange Drawer Toggle, Add Button */}
         <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end">
-          {/* Segmented View Switcher: Day | Week | Month | Year */}
+          {/* Segmented View Switcher: Day | Week | Month | Year | Life */}
           <div className="flex bg-[#121212] rounded-full p-1 border border-white/[0.06] shadow-inner">
             <button
               onClick={() => setView('day')}
@@ -590,6 +596,16 @@ const CalendarContainer = () => {
             >
               Year
             </button>
+            <button
+              onClick={() => setView('life')}
+              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+                view === 'life'
+                  ? 'bg-[#3A3A3C] text-white shadow-md'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              Life
+            </button>
           </div>
 
           {/* Year View Heatmap Status Pill */}
@@ -608,32 +624,36 @@ const CalendarContainer = () => {
           )}
 
           {/* Arrange Tasks Toggle */}
-          <button
-            onClick={() => setIsArrangeOpen(!isArrangeOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
-              isArrangeOpen
-                ? 'bg-[#0A84FF]/20 text-[#0A84FF] border-[#0A84FF]/40 shadow-sm'
-                : 'bg-[#121212] text-neutral-300 border-white/[0.08] hover:bg-white/[0.05]'
-            }`}
-            title="Toggle Arrange Tasks Drawer"
-          >
-            <SlidersHorizontal size={14} />
-            <span className="hidden sm:inline">Arrange</span>
-            {unscheduledTasks.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-[#0A84FF] text-white text-[10px] flex items-center justify-center font-bold">
-                {unscheduledTasks.length}
-              </span>
-            )}
-          </button>
+          {view !== 'life' && (
+            <button
+              onClick={() => setIsArrangeOpen(!isArrangeOpen)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
+                isArrangeOpen
+                  ? 'bg-[#0A84FF]/20 text-[#0A84FF] border-[#0A84FF]/40 shadow-sm'
+                  : 'bg-[#121212] text-neutral-300 border-white/[0.08] hover:bg-white/[0.05]'
+              }`}
+              title="Toggle Arrange Tasks Drawer"
+            >
+              <SlidersHorizontal size={14} />
+              <span className="hidden sm:inline">Arrange</span>
+              {unscheduledTasks.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#0A84FF] text-white text-[10px] flex items-center justify-center font-bold">
+                  {unscheduledTasks.length}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Quick Add Button */}
-          <button
-            onClick={() => handleOpenAddModal()}
-            className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-tr from-[#0A84FF] to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-[12px] font-bold transition-all shadow-md active:scale-95 shrink-0"
-          >
-            <Plus size={16} />
-            <span className="hidden sm:inline">Add Task</span>
-          </button>
+          {view !== 'life' && (
+            <button
+              onClick={() => handleOpenAddModal()}
+              className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-tr from-[#0A84FF] to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-[12px] font-bold transition-all shadow-md active:scale-95 shrink-0"
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">Add Task</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -715,21 +735,27 @@ const CalendarContainer = () => {
               }}
             />
           )}
+
+          {view === 'life' && (
+            <LifeView />
+          )}
         </div>
 
-        {/* Collapsible Arrange Tasks Drawer */}
-        <ArrangeDrawer
-          isOpen={isArrangeOpen}
-          onClose={() => setIsArrangeOpen(false)}
-          unscheduledTasks={unscheduledTasks}
-          selectedDate={selectedDate}
-          selectedDayTasks={selectedDayTasks}
-          decryptedTitles={decryptedTitles}
-          onCreateTask={handleCreateTask}
-          onToggleTask={handleTaskToggle}
-          onDeleteTask={handleTaskDelete}
-          onUnscheduleTask={handleUnscheduleTask}
-        />
+        {/* Collapsible Arrange Tasks Drawer (hidden in Life in Weeks view) */}
+        {view !== 'life' && (
+          <ArrangeDrawer
+            isOpen={isArrangeOpen}
+            onClose={() => setIsArrangeOpen(false)}
+            unscheduledTasks={unscheduledTasks}
+            selectedDate={selectedDate}
+            selectedDayTasks={selectedDayTasks}
+            decryptedTitles={decryptedTitles}
+            onCreateTask={handleCreateTask}
+            onToggleTask={handleTaskToggle}
+            onDeleteTask={handleTaskDelete}
+            onUnscheduleTask={handleUnscheduleTask}
+          />
+        )}
       </div>
 
       {/* Quick Add Task Modal */}

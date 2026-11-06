@@ -389,7 +389,13 @@ const Settings = () => {
     }, []);
     const isMobile = windowWidth < 768;
 
-    const [profile, setProfile] = useState({ name: '', email: '', avatar: AVATARS[0] });
+    const [profile, setProfile] = useState({
+        name: '',
+        email: '',
+        avatar: AVATARS[0],
+        dob: typeof window !== 'undefined' ? (localStorage.getItem('app_user_dob') || '') : '',
+        expectedLifespan: typeof window !== 'undefined' ? (Number(localStorage.getItem('app_user_lifespan')) || 90) : 90
+    });
     const [isSaving, setIsSaving] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [toast, setToast] = useState(null);
@@ -435,10 +441,16 @@ const Settings = () => {
                 const res = await apiFetch('/api/auth/me', { credentials: 'include' });
                 const data = await res.json();
                 if (data.success && data.user) {
+                    const userDob = data.user.dob ? (typeof data.user.dob === 'string' ? data.user.dob.split('T')[0] : '') : (localStorage.getItem('app_user_dob') || '');
+                    const userLifespan = data.user.expectedLifespan || Number(localStorage.getItem('app_user_lifespan')) || 90;
+                    if (userDob) localStorage.setItem('app_user_dob', userDob);
+                    if (userLifespan) localStorage.setItem('app_user_lifespan', String(userLifespan));
                     setProfile({
                         name: data.user.name || '',
                         email: data.user.email || '',
-                        avatar: data.user.avatar || data.user.imageUrl || AVATARS[0]
+                        avatar: data.user.avatar || data.user.imageUrl || AVATARS[0],
+                        dob: userDob,
+                        expectedLifespan: userLifespan
                     });
                 }
             } catch (err) {
@@ -458,7 +470,16 @@ const Settings = () => {
         
         setIsSaving(true);
         try {
-            const bodyData = { name: profile.name, email: profile.email, avatar: profile.avatar };
+            const bodyData = { 
+                name: profile.name, 
+                email: profile.email, 
+                avatar: profile.avatar,
+                dob: profile.dob,
+                expectedLifespan: Number(profile.expectedLifespan) || 90
+            };
+            if (profile.dob) localStorage.setItem('app_user_dob', profile.dob);
+            if (profile.expectedLifespan) localStorage.setItem('app_user_lifespan', String(profile.expectedLifespan));
+
             if (newPassword) {
                 // Hashing the password client-side to match the login/signup flow
                 const encoder = new TextEncoder();
@@ -520,6 +541,8 @@ const Settings = () => {
     const handleNameChange = useCallback((e) => setProfile(p => ({ ...p, name: e.target.value })), []);
     const handleEmailChange = useCallback((e) => setProfile(p => ({ ...p, email: e.target.value })), []);
     const handleAvatarSelect = useCallback((avatar) => setProfile(p => ({ ...p, avatar })), []);
+    const handleDobChange = useCallback((e) => setProfile(p => ({ ...p, dob: e.target.value })), []);
+    const handleLifespanChange = useCallback((val) => setProfile(p => ({ ...p, expectedLifespan: Math.round(val) })), []);
 
     const commitScale = useCallback((val) => setFontSizeMultiplier(val), [setFontSizeMultiplier]);
     const commitBrightness = useCallback((val) => setTextBrightness(val), [setTextBrightness]);
@@ -626,7 +649,7 @@ const Settings = () => {
                             description={
                                 <span>Color-code each day on the Year view based on task workload and focus sessions to see how busy your whole year was.</span>
                             }
-                            isLast={true}
+                            isLast={false}
                         >
                             <div className="flex items-center gap-3">
                                 <span className="text-[12px] font-semibold text-[#8A8A8A] font-mono">
@@ -641,6 +664,26 @@ const Settings = () => {
                                     label="Toggle calendar year heatmap"
                                 />
                             </div>
+                        </SettingRow>
+
+                        <SettingRow 
+                            title={
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>Life in Weeks Lifespan</span>
+                                    <Badge text="Life View" />
+                                </div>
+                            } 
+                            description="Expected lifespan target (in years) used to render your total weeks in the Life Calendar view."
+                            isLast={true}
+                        >
+                            <SmartSlider 
+                                initialValue={profile.expectedLifespan || 90}
+                                min={70} 
+                                max={100} 
+                                step={1} 
+                                onCommit={handleLifespanChange}
+                                formatLabel={(v) => `${Math.round(v)} yrs`}
+                            />
                         </SettingRow>
                     </SettingBlock>
 
@@ -669,7 +712,7 @@ const Settings = () => {
                             <TextInput value={profile.name} onChange={handleNameChange} placeholder="Enter your name" />
                         </SettingRow>
 
-                        <SettingRow title="Email Address" isLast={true}>
+                        <SettingRow title="Email Address" isLast={false}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
                                 <TextInput value={profile.email} onChange={handleEmailChange} placeholder="Enter your email" type="email" />
                                 {showPasswordPrompt && (
@@ -682,7 +725,7 @@ const Settings = () => {
                                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                                     }}>
                                         <p style={{ color: '#000000', fontSize: '12px', margin: '0 0 12px 0', lineHeight: 1.4, fontWeight: 500 }}>
-                                            Since you signed up with Google, please set a password to change your email.
+                                             Since you signed up with Google, please set a password to change your email.
                                         </p>
                                         <input 
                                             type="password"
@@ -703,6 +746,24 @@ const Settings = () => {
                                     </div>
                                 )}
                             </div>
+                        </SettingRow>
+
+                        <SettingRow 
+                            title={
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>Date of Birth</span>
+                                    <Badge text="Life View" />
+                                </div>
+                            }
+                            description="Used to accurately compute your Life in Weeks grid and Memento Mori timeline."
+                            isLast={true}
+                        >
+                            <TextInput 
+                                type="date" 
+                                value={profile.dob} 
+                                onChange={handleDobChange} 
+                                placeholder="YYYY-MM-DD" 
+                            />
                         </SettingRow>
                     </SettingBlock>
 
