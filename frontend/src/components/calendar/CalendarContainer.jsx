@@ -535,6 +535,14 @@ const CalendarContainer = () => {
 
   // Compute smart popover coordinates beside cursor
   const popoverCoords = useMemo(() => {
+    const isMobileScreen = typeof window !== 'undefined' && window.innerWidth < 640;
+    if (isMobileScreen) {
+      return {
+        top: Math.max(60, (window.innerHeight - 340) / 2),
+        left: Math.max(10, (window.innerWidth - 300) / 2),
+      };
+    }
+
     if (!popoverPos) {
       return {
         top: Math.max(80, window.innerHeight / 2 - 160),
@@ -585,46 +593,46 @@ const CalendarContainer = () => {
       <Sidebar activePage="Calendar" />
 
       {/* Top Navigation Toolbar */}
-      <div className="flex flex-col md:flex-row items-center justify-between pl-[92px] md:pl-[100px] pr-6 pt-5 pb-4 shrink-0 bg-[#1E1E1E] border-b border-[#38383A] z-20 gap-3 md:gap-0">
+      <div className="flex flex-col md:flex-row items-center justify-between pl-14 sm:pl-16 md:pl-[100px] pr-3 sm:pr-6 pt-3 sm:pt-4 md:pt-5 pb-3 md:pb-4 shrink-0 bg-[#1E1E1E] border-b border-[#38383A] z-20 gap-2.5 md:gap-0">
         {/* Left: Navigation Controls & Title */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <h1 className="text-[24px] md:text-[28px] font-bold tracking-tight text-white flex items-center gap-2">
+        <div className="flex items-center justify-between md:justify-start gap-2 sm:gap-3 w-full md:w-auto">
+          <h1 className="text-[17px] sm:text-[22px] md:text-[28px] font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
             {headerTitle}
           </h1>
 
           {view !== 'life' && (
-            <div className="flex items-center gap-1 ml-2">
+            <div className="flex items-center gap-1 ml-auto sm:ml-2 shrink-0">
               <button
                 onClick={() => handleNavigate(-1)}
-                className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
+                className="p-1 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors cursor-pointer"
                 title="Previous"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
               </button>
               <button
                 onClick={handleToday}
-                className="px-3 py-1 rounded-full bg-[#121212] border border-white/[0.08] text-[12px] font-bold text-[#EBEBF5] hover:text-white hover:bg-white/[0.05] transition-all shadow-sm"
+                className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-[#121212] border border-white/[0.08] text-[11px] sm:text-[12px] font-bold text-[#EBEBF5] hover:text-white hover:bg-white/[0.05] transition-all shadow-sm cursor-pointer"
               >
                 Today
               </button>
               <button
                 onClick={() => handleNavigate(1)}
-                className="p-1.5 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors"
+                className="p-1 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors cursor-pointer"
                 title="Next"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             </div>
           )}
         </div>
 
         {/* Right: View Switcher, Arrange Drawer Toggle, Add Button */}
-        <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end overflow-x-auto no-scrollbar py-0.5">
           {/* Segmented View Switcher: Day | Week | Month | Year | Life */}
-          <div className="flex bg-[#121212] rounded-full p-1 border border-white/[0.06] shadow-inner">
+          <div className="flex bg-[#121212] rounded-full p-0.5 sm:p-1 border border-white/[0.06] shadow-inner shrink-0">
             <button
               onClick={() => setView('day')}
-              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+              className={`px-2.5 sm:px-3 md:px-4 py-1 rounded-full text-[11px] sm:text-[12px] font-bold transition-all duration-200 cursor-pointer ${
                 view === 'day'
                   ? 'bg-[#3A3A3C] text-white shadow-md'
                   : 'text-neutral-400 hover:text-white'
@@ -634,7 +642,7 @@ const CalendarContainer = () => {
             </button>
             <button
               onClick={() => setView('week')}
-              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+              className={`px-2.5 sm:px-3 md:px-4 py-1 rounded-full text-[11px] sm:text-[12px] font-bold transition-all duration-200 cursor-pointer ${
                 view === 'week'
                   ? 'bg-[#3A3A3C] text-white shadow-md'
                   : 'text-neutral-400 hover:text-white'
@@ -644,7 +652,7 @@ const CalendarContainer = () => {
             </button>
             <button
               onClick={() => setView('month')}
-              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+              className={`px-2.5 sm:px-3 md:px-4 py-1 rounded-full text-[11px] sm:text-[12px] font-bold transition-all duration-200 cursor-pointer ${
                 view === 'month'
                   ? 'bg-[#3A3A3C] text-white shadow-md'
                   : 'text-neutral-400 hover:text-white'
@@ -654,7 +662,7 @@ const CalendarContainer = () => {
             </button>
             <button
               onClick={() => setView('year')}
-              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+              className={`px-2.5 sm:px-3 md:px-4 py-1 rounded-full text-[11px] sm:text-[12px] font-bold transition-all duration-200 cursor-pointer ${
                 view === 'year'
                   ? 'bg-[#3A3A3C] text-white shadow-md'
                   : 'text-neutral-400 hover:text-white'
@@ -664,7 +672,7 @@ const CalendarContainer = () => {
             </button>
             <button
               onClick={() => setView('life')}
-              className={`px-3 md:px-4 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
+              className={`px-2.5 sm:px-3 md:px-4 py-1 rounded-full text-[11px] sm:text-[12px] font-bold transition-all duration-200 cursor-pointer ${
                 view === 'life'
                   ? 'bg-[#3A3A3C] text-white shadow-md'
                   : 'text-neutral-400 hover:text-white'
@@ -674,22 +682,21 @@ const CalendarContainer = () => {
             </button>
           </div>
 
-
           {/* Arrange Tasks Toggle */}
           {view !== 'life' && (
             <button
               onClick={() => setIsArrangeOpen(!isArrangeOpen)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-[12px] font-bold border transition-all shrink-0 cursor-pointer ${
                 isArrangeOpen
                   ? 'bg-[#0A84FF]/20 text-[#0A84FF] border-[#0A84FF]/40 shadow-sm'
                   : 'bg-[#121212] text-neutral-300 border-white/[0.08] hover:bg-white/[0.05]'
               }`}
               title="Toggle Arrange Tasks Drawer"
             >
-              <SlidersHorizontal size={14} />
+              <SlidersHorizontal size={13} />
               <span className="hidden sm:inline">Arrange</span>
               {unscheduledTasks.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-[#0A84FF] text-white text-[10px] flex items-center justify-center font-bold">
+                <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#0A84FF] text-white text-[9px] sm:text-[10px] flex items-center justify-center font-bold">
                   {unscheduledTasks.length}
                 </span>
               )}
@@ -700,9 +707,9 @@ const CalendarContainer = () => {
           {view !== 'life' && (
             <button
               onClick={() => handleOpenAddModal()}
-              className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-tr from-[#0A84FF] to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-[12px] font-bold transition-all shadow-md active:scale-95 shrink-0"
+              className="flex items-center gap-1 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-gradient-to-tr from-[#0A84FF] to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-[11px] sm:text-[12px] font-bold transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
             >
-              <Plus size={16} />
+              <Plus size={15} />
               <span className="hidden sm:inline">Add Task</span>
             </button>
           )}
@@ -710,7 +717,8 @@ const CalendarContainer = () => {
       </div>
 
       {/* Main Workspace: Calendar Grid + Arrange Drawer */}
-      <div className="flex-1 flex min-h-0 pl-[92px] md:pl-[100px] relative overflow-hidden">
+      <div className="flex-1 flex min-h-0 pl-0 md:pl-[100px] relative overflow-hidden">
+
         {/* Dynamic Calendar View Body */}
         <div className="flex-1 flex flex-col min-h-0 min-w-0 relative">
           {view === 'week' && (
@@ -797,18 +805,26 @@ const CalendarContainer = () => {
 
         {/* Collapsible Arrange Tasks Drawer (hidden in Life in Weeks view) */}
         {view !== 'life' && (
-          <ArrangeDrawer
-            isOpen={isArrangeOpen}
-            onClose={() => setIsArrangeOpen(false)}
-            unscheduledTasks={unscheduledTasks}
-            selectedDate={selectedDate}
-            selectedDayTasks={selectedDayTasks}
-            decryptedTitles={decryptedTitles}
-            onCreateTask={handleCreateTask}
-            onToggleTask={handleTaskToggle}
-            onDeleteTask={handleTaskDelete}
-            onUnscheduleTask={handleUnscheduleTask}
-          />
+          <>
+            {isArrangeOpen && (
+              <div
+                className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                onClick={() => setIsArrangeOpen(false)}
+              />
+            )}
+            <ArrangeDrawer
+              isOpen={isArrangeOpen}
+              onClose={() => setIsArrangeOpen(false)}
+              unscheduledTasks={unscheduledTasks}
+              selectedDate={selectedDate}
+              selectedDayTasks={selectedDayTasks}
+              decryptedTitles={decryptedTitles}
+              onCreateTask={handleCreateTask}
+              onToggleTask={handleTaskToggle}
+              onDeleteTask={handleTaskDelete}
+              onUnscheduleTask={handleUnscheduleTask}
+            />
+          </>
         )}
       </div>
 

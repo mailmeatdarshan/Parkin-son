@@ -128,7 +128,7 @@ const ArrangeDrawer = ({
     : '';
 
   return (
-    <aside className="w-80 md:w-88 shrink-0 border-l border-[#38383A] bg-[#1A1A1C] flex flex-col h-full z-40 transition-all select-none shadow-2xl">
+    <aside className="fixed md:static inset-y-0 right-0 w-[85vw] max-w-[340px] md:w-88 shrink-0 border-l border-[#38383A] bg-[#1A1A1C] flex flex-col h-full z-50 md:z-40 transition-all select-none shadow-2xl">
       {/* Drawer Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#38383A] bg-[#1E1E1E]">
         <div className="flex items-center gap-2">

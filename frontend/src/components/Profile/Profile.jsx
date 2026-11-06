@@ -317,13 +317,13 @@ const Profile = () => {
 
     if (loading) return (
         <div style={{ minHeight: '100vh', width: '100%', backgroundColor: COLORS.bg, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ paddingTop: 96, paddingBottom: 48, paddingLeft: 'clamp(24px, 5vw, 96px)', paddingRight: 'clamp(24px, 5vw, 96px)', width: '100%', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10 }}>
+            <div className="profile-main-container" style={{ paddingTop: 96, paddingBottom: 48, paddingLeft: 'clamp(24px, 5vw, 96px)', paddingRight: 'clamp(24px, 5vw, 96px)', width: '100%', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10 }}>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
-                    <div style={{ display: 'flex', flexDirection: 'row', gap: 64, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div className="profile-header-container" style={{ display: 'flex', flexDirection: 'row', gap: 64, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                         
                         {/* LEFT COLUMN SKELETON */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', flexShrink: 0, width: 220 }}>
+                        <div className="profile-left-col" style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', flexShrink: 0, width: 220 }}>
                             <div className="skeleton" style={{ width: 180, height: 180, borderRadius: '50%' }}></div>
                             
                             <div style={{ display: 'flex', gap: 24, width: '100%', justifyContent: 'center', padding: '12px 0', borderTop: `1px solid ${COLORS.border}`, borderBottom: `1px solid ${COLORS.border}` }}>
@@ -335,22 +335,22 @@ const Profile = () => {
                         </div>
 
                         {/* RIGHT COLUMN SKELETON */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 700, flex: 1, paddingTop: 16, minWidth: 280 }}>
+                        <div className="profile-right-col" style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 700, flex: 1, paddingTop: 16, minWidth: 280 }}>
                             
                             {/* Header Row */}
-                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 20 }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div className="profile-top-bar" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 20 }}>
+                                <div className="profile-user-info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                     <div className="skeleton" style={{ width: 'clamp(200px, 40vw, 350px)', height: 60, borderRadius: 12 }}></div>
                                     <div className="skeleton" style={{ width: 120, height: 20, borderRadius: 6 }}></div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 10 }}>
+                                <div className="profile-actions-bar" style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 10 }}>
                                     <div className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%' }}></div>
                                     <div className="skeleton" style={{ width: 200, height: 40, borderRadius: 20 }}></div>
                                 </div>
                             </div>
 
                             {/* About Section */}
-                            <div style={{ marginTop: 12 }}>
+                            <div className="profile-about-section" style={{ marginTop: 12 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                                     <div className="skeleton" style={{ width: 80, height: 20, borderRadius: 6 }}></div>
                                     <div className="skeleton" style={{ width: 70, height: 28, borderRadius: 6 }}></div>
@@ -367,7 +367,7 @@ const Profile = () => {
                             <div className="skeleton" style={{ width: 220, height: 28, borderRadius: 8 }}></div>
                             <div className="skeleton" style={{ width: 100, height: 16, borderRadius: 4 }}></div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 20 }}>
+                        <div className="profile-badges-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 20 }}>
                             {[1, 2, 3, 4, 5].map(i => (
                                 <div key={i} className="badge-card locked" style={{ minHeight: 220, cursor: 'default', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                     {/* Circle for Badge Image */}
@@ -485,6 +485,76 @@ const Profile = () => {
     .link-item { position: relative; display: inline-block; }
     .link-delete-btn { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background-color: #EF4444; color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; opacity: 0; transform: scale(0.8); transition: all 0.2s; box-shadow: 0 2px 8px rgba(239,68,68,0.4); z-index: 10; }
     .link-item:hover .link-delete-btn { opacity: 1; transform: scale(1); }
+
+    /* MOBILE RESPONSIVE STYLES (SCREEN <= 768px) */
+    @media (max-width: 768px) {
+        .profile-main-container {
+            padding-top: 76px !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+            padding-bottom: 40px !important;
+        }
+        .profile-header-container {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 28px !important;
+            width: 100% !important;
+        }
+        .profile-left-col {
+            width: 100% !important;
+            max-width: 280px !important;
+            align-items: center !important;
+            margin: 0 auto !important;
+        }
+        .profile-right-col {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            padding-top: 0 !important;
+            align-items: center !important;
+        }
+        .profile-top-bar {
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 16px !important;
+            width: 100% !important;
+        }
+        .profile-user-info {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+        .profile-user-info h1 {
+            text-align: center !important;
+            font-size: clamp(28px, 7vw, 40px) !important;
+        }
+        .profile-user-info span {
+            text-align: center !important;
+            display: block !important;
+        }
+        .profile-actions-bar {
+            justify-content: center !important;
+            width: 100% !important;
+            margin-top: 4px !important;
+        }
+        .notif-dropdown {
+            right: auto !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: min(300px, calc(100vw - 40px)) !important;
+        }
+        .profile-about-section {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .profile-badges-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+            gap: 14px !important;
+        }
+    }
 `}</style>
 
             <div style={{ minHeight: '100vh', width: '100%', backgroundColor: COLORS.bg, color: COLORS.textPrimary, position: 'relative', overflowX: 'hidden', fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -524,7 +594,7 @@ const Profile = () => {
                     </div>
                 )}
 
-                <div style={{ paddingTop: 96, paddingBottom: 48, paddingLeft: 'clamp(24px, 5vw, 96px)', paddingRight: 'clamp(24px, 5vw, 96px)', width: '100%', maxWidth: 1200, margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, opacity: isFetchingProfile ? 0.3 : 1, transition: 'opacity 0.2s ease-in-out', pointerEvents: isFetchingProfile ? 'none' : 'auto' }}>
+                <div className="profile-main-container" style={{ paddingTop: 96, paddingBottom: 48, paddingLeft: 'clamp(24px, 5vw, 96px)', paddingRight: 'clamp(24px, 5vw, 96px)', width: '100%', maxWidth: 1200, margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 10, opacity: isFetchingProfile ? 0.3 : 1, transition: 'opacity 0.2s ease-in-out', pointerEvents: isFetchingProfile ? 'none' : 'auto' }}>
 
                     {error && (
                         <div style={{ marginBottom: 24, padding: 16, borderRadius: 12, backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#F87171', fontSize: 14, fontWeight: 500 }}>{error}</div>
@@ -532,10 +602,10 @@ const Profile = () => {
 
                     {user && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
-                            <div style={{ display: 'flex', flexDirection: 'row', gap: 64, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                            <div className="profile-header-container" style={{ display: 'flex', flexDirection: 'row', gap: 64, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                                 
                                 {/* LEFT COLUMN: AVATAR, LINKS, FOLLOW STATS */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', flexShrink: 0, width: 220 }}>
+                                <div className="profile-left-col" style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', flexShrink: 0, width: 220 }}>
                                     <div style={{ width: 180, height: 180, borderRadius: '50%', border: `2px solid ${COLORS.borderHover}`, backgroundColor: COLORS.card, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
                                         {/* Main Profile Image using Avatar component */}
                                         <Avatar src={user.imageUrl || user.avatar} name={user.name} size={180} />
@@ -604,16 +674,16 @@ const Profile = () => {
                                 </div>
 
                                 {/* RIGHT COLUMN */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 700, flex: 1, paddingTop: 16, minWidth: 280 }}>
+                                <div className="profile-right-col" style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 700, flex: 1, paddingTop: 16, minWidth: 280 }}>
                                     
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 20 }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div className="profile-top-bar" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 20 }}>
+                                        <div className="profile-user-info" style={{ display: 'flex', flexDirection: 'column' }}>
                                             <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#E5E7EB', lineHeight: 1.1 }}>{user.name}</h1>
                                             {user.username && <span style={{ color: COLORS.textMuted, fontSize: 16, fontWeight: 500, marginTop: 6 }}>@{user.username}</span>}
                                         </div>
 
                                         {/* SEARCH, NOTIFICATIONS, BACK */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 10 }}>
+                                        <div className="profile-actions-bar" style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 10 }}>
                                             
                                             {/* NOTIFICATION BELL */}
                                             {!isPublicView && (
@@ -624,7 +694,7 @@ const Profile = () => {
                                                     </button>
                                                     
                                                     {showNotifications && (
-                                                        <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 300, backgroundColor: COLORS.card, border: `1px solid ${COLORS.borderHover}`, borderRadius: 12, overflow: 'hidden', zIndex: 50, boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+                                                        <div className="notif-dropdown" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 300, backgroundColor: COLORS.card, border: `1px solid ${COLORS.borderHover}`, borderRadius: 12, overflow: 'hidden', zIndex: 50, boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
                                                             <div style={{ padding: '12px 16px', borderBottom: `1px solid ${COLORS.borderHover}`, fontWeight: 600 }}>Notifications</div>
                                                             <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                                                                 {notifications.length > 0 ? notifications.map(n => (
@@ -672,7 +742,7 @@ const Profile = () => {
                                         </div>
                                     </div>
                                     
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 700, marginTop: 12 }}>
+                                    <div className="profile-about-section" style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 700, marginTop: 12 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 26 }}>
                                             <h3 style={{ color: COLORS.textMuted, fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em' }}>About</h3>
                                             {!isPublicView && !isEditingAbout && (
@@ -712,7 +782,7 @@ const Profile = () => {
                                     </span>
                                 </div>
                                 
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 20 }}>
+                                <div className="profile-badges-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 20 }}>
                                    {ALL_BADGES.map((badge) => {
                                         const isUnlocked = badge.id === 'feather' 
                                             ? ((user.totalFocusTimeAllTime || user.xp || 0) >= 36000) 

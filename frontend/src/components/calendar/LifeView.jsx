@@ -347,7 +347,7 @@ const LifeView = ({ onNavigateToSettings }) => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col justify-between bg-[#08080A] text-white overflow-hidden select-none p-3 md:px-6 md:py-3.5 relative">
+    <div className="h-full w-full flex flex-col justify-between bg-[#08080A] text-white overflow-y-auto lg:overflow-hidden select-none p-2 sm:p-3 md:px-6 md:py-3.5 relative">
       {/* 1. MINIMALIST MEMENTO MORI HUD HEADER (Height: ~42px) */}
       <div className="flex items-center justify-between gap-3 shrink-0 pb-2.5 border-b border-white/[0.06] z-10">
         {/* Left: Matrix Title & Live Week Beacon */}
@@ -454,8 +454,8 @@ const LifeView = ({ onNavigateToSettings }) => {
       </div>
 
       {/* 2. THE CHRONO MATRIX (FITS 100% IN VIEWPORT WITHOUT SCROLLING) */}
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative my-1">
-        <div className="flex flex-col items-center justify-center max-h-full">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative my-1 w-full overflow-x-auto no-scrollbar">
+        <div className="flex flex-col items-center justify-center max-h-full min-w-[480px] sm:min-w-0">
           {/* Week Columns Ruler (Weeks 1 to 52) */}
           <div className="flex items-center pl-10 md:pl-12 mb-1.5">
             <div
@@ -588,9 +588,9 @@ const LifeView = ({ onNavigateToSettings }) => {
       </div>
 
       {/* 3. MINIMALIST FOOTER & FLOATING LENS BAR (Height: ~32px) */}
-      <div className="flex items-center justify-between gap-4 pt-2 border-t border-white/[0.06] shrink-0 text-[11px] font-mono z-10">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4 pt-2 border-t border-white/[0.06] shrink-0 text-[10px] sm:text-[11px] font-mono z-10">
         {/* Left: Minimal Legend */}
-        <div className="flex items-center gap-3.5 text-zinc-400">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3.5 text-zinc-400">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-[1.5px] bg-[#181C2B] border border-[#262C42]" />
             <span>Lived</span>
@@ -610,7 +610,7 @@ const LifeView = ({ onNavigateToSettings }) => {
         </div>
 
         {/* Center: Live Hovered Inspection HUD (or Stoic Quote when idle) */}
-        <div className="flex-1 max-w-[460px] text-center truncate">
+        <div className="hidden md:block flex-1 max-w-[460px] text-center truncate">
           {hoveredWeek ? (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-white animate-fadeIn">
               <span className="font-bold text-[#5278E8]">Age {hoveredWeek.age}, Wk {hoveredWeek.week}</span>

@@ -24,12 +24,15 @@ const SIDEBAR_ITEMS = [
     { name: 'Settings', icon: Settings2 }
 ];
 
-const SidebarItem = React.memo(({ item, isActive, isHovered, setHoveredItem, navigate, isMobile }) => {
+const SidebarItem = React.memo(({ item, isActive, isHovered, setHoveredItem, navigate, isMobile, onClose }) => {
     const Icon = item.icon;
     return (
         <div style={{ padding: isMobile ? '8px 12px' : '0', display: 'flex', justifyContent: 'center' }}>
             <button 
-                onClick={() => navigate(`/${item.name.toLowerCase()}`)} 
+                onClick={() => {
+                    navigate(`/${item.name.toLowerCase()}`);
+                    if (isMobile && onClose) onClose();
+                }} 
                 onMouseEnter={() => setHoveredItem(item.name)}
                 style={{ 
                     position: 'relative', 
@@ -48,8 +51,6 @@ const SidebarItem = React.memo(({ item, isActive, isHovered, setHoveredItem, nav
                 }}
                 className="group"
             >
-                {/* Hover Pill Removed - Replaced with CSS background */}
-
                 {isActive && (
                     <motion.div
                         layoutId={isMobile ? "mobile-active-indicator" : "active-indicator"}
@@ -99,7 +100,7 @@ const getRandomAvatar = (name) => {
 
 let globalSidebarOpen = false;
 
-const SidebarMenu = React.memo(({ activePage, navigate, isMobile }) => {
+const SidebarMenu = React.memo(({ activePage, navigate, isMobile, onClose }) => {
     const [hoveredItem, setHoveredItem] = useState(activePage);
 
     useEffect(() => {
@@ -123,6 +124,7 @@ const SidebarMenu = React.memo(({ activePage, navigate, isMobile }) => {
                             setHoveredItem={setHoveredItem} 
                             navigate={navigate} 
                             isMobile={isMobile}
+                            onClose={onClose}
                         />
                         {item.name === 'Stopwatch' && (
                             <div style={{ padding: isMobile ? '0' : '0 24px', margin: '8px 0', width: isMobile ? '32px' : 'auto' }}>
@@ -218,18 +220,24 @@ const Sidebar = ({ activePage }) => {
                     opacity: isOpen ? 0 : 1, pointerEvents: isOpen ? 'none' : 'auto'
                 }}
                 className="hover:scale-105 hover:bg-white/10"
+                aria-label="Open Navigation"
             >
                 <CustomSidebarIcon />
             </button>
 
             <div 
                 onClick={() => setIsOpen(false)}
-                style={{ position: 'fixed', inset: 0, zIndex: 40, display: isOpen ? 'block' : 'none' }}
-            ></div>
+                style={{ 
+                    position: 'fixed', inset: 0, zIndex: 40, 
+                    backgroundColor: 'rgba(0,0,0,0.6)', 
+                    backdropFilter: 'blur(3px)',
+                    display: isOpen ? 'block' : 'none' 
+                }}
+            />
 
             <div 
                 ref={sidebarRef} 
-                onMouseLeave={() => setIsOpen(false)} 
+                onMouseLeave={() => !isMobile && setIsOpen(false)} 
                 style={{ 
                     position: 'fixed', top: 0, left: 0, height: '100vh', width: sidebarWidth, 
                     backgroundColor: '#1C1C1E', 
@@ -243,16 +251,19 @@ const Sidebar = ({ activePage }) => {
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'space-between', marginTop: 8, marginBottom: 32, width: '100%', padding: isMobile ? '0 12px' : 0 }}>
-                    {!isMobile ? (
+                    {!isMobile && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <img src="/parkinson.svg" alt="Parkin'son Logo" style={{ width: 26, height: 26 }} />
                             <span style={{ color: '#D1D5DB', fontSize: 22, fontWeight: 700, letterSpacing: '0.15em', fontFamily: "'Pixeloid', sans-serif" }}>Parkin'son</span>
                         </div>
-                    ) : (
-                        <img src="/parkinson.svg" alt="Parkin'son Logo" style={{ width: 28, height: 28 }} />
                     )}
                     {isMobile ? (
-                        <button onClick={() => setIsOpen(false)} style={{ padding: 8, color: '#6B7280', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%' }} className="hover:text-white hover:bg-white/10 transition-all">
+                        <button 
+                            onClick={() => setIsOpen(false)} 
+                            style={{ padding: 8, color: '#6B7280', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%' }} 
+                            className="hover:text-white hover:bg-white/10 transition-all"
+                            aria-label="Close Navigation"
+                        >
                             <X size={18} />
                         </button>
                     ) : (
@@ -262,7 +273,7 @@ const Sidebar = ({ activePage }) => {
                     )}
                 </div>
                 
-                <SidebarMenu activePage={activePage} navigate={navigate} isMobile={isMobile} />
+                <SidebarMenu activePage={activePage} navigate={navigate} isMobile={isMobile} onClose={() => setIsOpen(false)} />
 
                 <div style={{ marginTop: 'auto', paddingTop: 24, width: '100%', padding: isMobile ? '0 12px' : 0 }}>
                     <button 
