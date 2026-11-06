@@ -217,7 +217,6 @@ const WeekView = ({
           {/* 7 Columns */}
           <div className="flex-1 grid grid-cols-7 divide-x divide-[#38383A] relative">
             {weekDays.map((dayDate, dayIdx) => {
-              const isToday = isSameDay(dayDate, now);
               const dayLayout = computeDayLayout(tasks, dayDate);
               const isHovered = hoverGuide && hoverGuide.dayIndex === dayIdx;
 

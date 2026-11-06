@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
@@ -7,14 +7,11 @@ import {
   SlidersHorizontal,
   LayoutGrid,
   MoreHorizontal,
-  Calendar as CalendarIcon,
 } from 'lucide-react';
 import {
   CalendarPlus,
   Check,
   X,
-  Clock,
-  Sparkle,
 } from '@phosphor-icons/react';
 import { apiFetch } from '../../apiClient';
 import Sidebar from '../Sidebar/Sidebar';
@@ -26,8 +23,6 @@ import LifeView from './LifeView';
 import ArrangeDrawer from './ArrangeDrawer';
 import {
   getWeekDays,
-  setHoursAndMinutes,
-  formatTime24,
   isSameDay,
 } from '../../utils/calendarLayout';
 import { useCrypto } from '../../context/CryptoContext';

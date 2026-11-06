@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle2, Circle } from 'lucide-react';
 import {
   getPriorityMeta,
-  formatTimeRange,
   HOUR_HEIGHT,
   SLOT_HEIGHT,
   formatTime24,
@@ -101,7 +100,6 @@ const CalendarEventCard = ({
   const timeBadge = `${formatTime24(startTime)} - ${formatTime24(liveEndTime)}`;
 
   const isShort = currentHeight < 36;
-  const isCompact = currentHeight < 56;
 
   const isCompleted = Boolean(task.status);
   const displayTitle = decryptedTitle || task.title || 'Untitled Task';
