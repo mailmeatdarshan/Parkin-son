@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, memo, useSyncExternalStore } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
     Play, 
     Pause, 
@@ -18,7 +17,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { DitherButton } from "../dither-kit/button";
-import Sidebar from '../../components/Sidebar/Sidebar'; // Import tera naya Sidebar component
 import { apiFetch } from '../../apiClient';
 import { useCrypto } from '../../context/CryptoContext';
 
@@ -237,9 +235,9 @@ const Header = memo(() => {
     const timerMode = useTimer(s => s.timerMode);
 
     return (
-        <div className="w-full mb-4 md:mb-8 mt-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pl-12 sm:pl-14 md:pl-0">
-            <div>
-                <h1 className="text-xl md:text-[34px] font-bold tracking-tight text-[#E0E0E0] leading-none">
+        <div className="w-full mb-4 md:mb-8 mt-1 sm:mt-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between items-center text-center sm:text-left gap-3.5 sm:gap-4">
+            <div className="flex flex-col items-center sm:items-start">
+                <h1 className="text-2xl sm:text-3xl md:text-[34px] font-bold tracking-tight text-[#E0E0E0] leading-tight">
                     {timerMode === 'pomodoro' ? 'Pomodoro Focus' : 'Focus Session'}
                 </h1>
                 <p className="hidden sm:block text-[14px] md:text-[16px] text-[#A3A3A3] mt-2 font-medium">
@@ -250,11 +248,11 @@ const Header = memo(() => {
             </div>
 
             {/* Segmented Mode Switcher */}
-            <div className="flex items-center p-1 rounded-2xl bg-black/60 border border-white/10 self-start sm:self-auto backdrop-blur-md">
+            <div className="flex items-center p-1 rounded-2xl bg-black/60 border border-white/10 self-center sm:self-auto backdrop-blur-md">
                 <button
                     type="button"
                     onClick={() => switchTimerMode('stopwatch')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-[13px] font-semibold transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-[13px] font-semibold transition-all cursor-pointer ${
                         timerMode === 'stopwatch'
                             ? 'bg-white/15 text-white shadow-sm border border-white/20'
                             : 'text-neutral-400 hover:text-white border border-transparent'
@@ -267,7 +265,7 @@ const Header = memo(() => {
                 <button
                     type="button"
                     onClick={() => switchTimerMode('pomodoro')}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-[13px] font-semibold transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-[13px] font-semibold transition-all cursor-pointer ${
                         timerMode === 'pomodoro'
                             ? 'bg-white/15 text-white shadow-sm border border-white/20'
                             : 'text-neutral-400 hover:text-white border border-transparent'
@@ -876,7 +874,7 @@ const handlePomodoroComplete = async () => {
 const triggerSaveFlow = () => {
     const state = timerStore.getState();
 
-    let durationToSave = 0;
+    let durationToSave;
     if (state.timerMode === 'pomodoro') {
         if (state.pomodoroPhase !== 'focus') return; // Breaks don't log as focus time
         durationToSave = Math.max(0, (state.initialDuration || 1500) - state.time);
@@ -1432,8 +1430,6 @@ const MainContainer = memo(({ children }) => {
 });
 
 const Stopwatch = () => {
-    const navigate = useNavigate();
-    
     useEffect(() => {
         fetchTodayStats();
     }, []);
