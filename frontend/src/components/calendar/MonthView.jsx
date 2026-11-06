@@ -5,8 +5,10 @@ import {
 } from '../../utils/calendarLayout';
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS_OF_WEEK_MOBILE = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const MonthView = ({
+  isMobile,
   currentDate,
   selectedDate,
   tasks,
@@ -155,10 +157,12 @@ const MonthView = ({
     <div className="flex-1 flex flex-col min-h-0 bg-[#1E1E1E] select-none">
       {/* Day of Week Header */}
       <div className="grid grid-cols-7 shrink-0 border-b border-[#38383A] bg-[#1E1E1E]">
-        {DAYS_OF_WEEK.map((day) => (
+        {(isMobile ? DAYS_OF_WEEK_MOBILE : DAYS_OF_WEEK).map((day) => (
           <div
             key={day}
-            className="py-2.5 text-center text-[12px] font-bold tracking-wider text-neutral-400 uppercase"
+            className={`text-center font-bold tracking-wider text-neutral-400 uppercase ${
+              isMobile ? 'py-1.5 text-[11px]' : 'py-2.5 text-[12px]'
+            }`}
           >
             {day}
           </div>
@@ -188,25 +192,25 @@ const MonthView = ({
               onDrop={(e) => handleDrop(e, cell.date)}
               onClick={() => onDayClick && onDayClick(cell.date)}
               onDoubleClick={() => onDayDoubleClick && onDayDoubleClick(cell.date)}
-              title="Click to view tasks in Arrange Drawer | Double-click to open Day View"
-              className={`p-1.5 flex flex-col min-h-0 cursor-pointer transition-all group overflow-hidden relative ${
+              title="Click to view tasks | Double-click to open Day View"
+              className={`p-1 sm:p-1.5 flex flex-col min-h-0 cursor-pointer transition-all group overflow-hidden relative ${
                 isHovered
                   ? 'bg-blue-500/20 ring-1 ring-blue-400/60 z-20 shadow-md'
                   : isSelected
-                  ? 'bg-blue-500/[0.06] ring-1 ring-blue-500/30 z-10'
+                  ? 'bg-blue-500/[0.08] ring-1 ring-blue-500/40 z-10'
                   : cell.isCurrentMonth
                   ? 'bg-[#1E1E1E] hover:bg-[#252528]'
                   : 'bg-[#161617] opacity-40 hover:opacity-80 hover:bg-[#202022]'
               }`}
             >
               {/* Day Number Header */}
-              <div className="flex items-center justify-between shrink-0 mb-1">
+              <div className="flex items-center justify-between shrink-0 mb-0.5 sm:mb-1">
                 <div
-                  className={`w-6 h-6 flex items-center justify-center rounded-full text-[12px] font-semibold transition-all ${
+                  className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full text-[11px] sm:text-[12px] font-semibold transition-all ${
                     isToday
-                      ? 'bg-gradient-to-tr from-[#FF3B30] to-[#FF453A] text-white font-bold shadow-[0_0_10px_rgba(255,59,48,0.5)]'
+                      ? 'bg-[#3B82F6] text-white font-bold shadow-[0_2px_8px_rgba(59,130,246,0.6)]'
                       : isSelected
-                      ? 'bg-blue-500/20 text-blue-300 font-bold border border-blue-400/30'
+                      ? 'bg-blue-500/20 text-blue-300 font-bold border border-blue-400/40'
                       : cell.isCurrentMonth
                       ? 'text-[#EBEBF5] group-hover:text-white'
                       : 'text-neutral-500'
@@ -215,7 +219,7 @@ const MonthView = ({
                   {cell.dayNumber}
                 </div>
 
-                {dayTasks.length > 0 && (
+                {dayTasks.length > 0 && !isMobile && (
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                       isSelected
@@ -228,47 +232,63 @@ const MonthView = ({
                 )}
               </div>
 
-              {/* Event Pills (Draggable) */}
-              <div className="flex-1 flex flex-col gap-1 overflow-y-auto hide-scrollbar min-h-0">
-                {dayTasks.slice(0, 3).map((task) => {
+              {/* Event Pills (Draggable on Desktop, Soft Pastel on Mobile) */}
+              <div className="flex-1 flex flex-col gap-0.5 sm:gap-1 overflow-y-auto hide-scrollbar min-h-0">
+                {dayTasks.slice(0, isMobile ? 2 : 3).map((task) => {
                   const priorityMeta = getPriorityMeta(task.priority);
                   const isCompleted = Boolean(task.status);
                   const displayTitle = decryptedTitles?.[task._id] || task.title || 'Untitled Task';
 
+                  // Soft pastel styling matching user mockup
+                  let pillStyle = '';
+                  if (isCompleted) {
+                    pillStyle = 'bg-white/[0.04] text-neutral-400 line-through border-white/[0.06]';
+                  } else if (task.priority === 5) {
+                    pillStyle = 'bg-red-500/15 border-red-500/30 text-red-200';
+                  } else if (task.priority === 3) {
+                    pillStyle = 'bg-amber-500/15 border-amber-500/30 text-amber-200';
+                  } else if (task.priority === 1) {
+                    pillStyle = 'bg-blue-500/20 border-blue-500/30 text-blue-200';
+                  } else {
+                    pillStyle = 'bg-purple-500/15 border-purple-500/30 text-purple-200';
+                  }
+
                   return (
                     <div
                       key={task._id}
-                      draggable={!isCompleted}
+                      draggable={!isCompleted && !isMobile}
                       onDragStart={(e) => handlePillDragStart(e, task)}
                       onClick={(e) => {
                         e.stopPropagation();
                         onTaskClick && onTaskClick(task);
                       }}
-                      className={`px-1.5 py-0.5 rounded border flex items-center gap-1.5 truncate text-[11px] transition-all ${
+                      className={`px-1 sm:px-1.5 py-0.5 rounded-[4px] border flex items-center gap-1 truncate text-[9px] sm:text-[11px] transition-all ${pillStyle} ${
                         isCompleted
-                          ? 'bg-white/[0.04] hover:bg-white/[0.07] border-white/[0.06] text-neutral-300 line-through decoration-neutral-500/80 cursor-default opacity-85'
-                          : 'bg-white/[0.06] hover:bg-white/[0.14] border-white/[0.05] text-white/95 cursor-grab active:cursor-grabbing'
+                          ? 'cursor-default opacity-85'
+                          : 'cursor-pointer active:scale-95'
                       }`}
                       title={
                         isCompleted
-                          ? `${displayTitle} (Completed - cannot be moved)`
-                          : `${displayTitle} (drag to another date)`
+                          ? `${displayTitle} (Completed)`
+                          : displayTitle
                       }
                     >
-                      <div
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{
-                          backgroundColor: isCompleted ? '#A1A1AA' : priorityMeta.color,
-                        }}
-                      />
+                      {!isMobile && (
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: isCompleted ? '#A1A1AA' : priorityMeta.color,
+                          }}
+                        />
+                      )}
                       <span className="truncate font-medium">{displayTitle}</span>
                     </div>
                   );
                 })}
 
-                {dayTasks.length > 3 && (
-                  <span className="text-[10px] font-bold text-neutral-400 pl-1">
-                    +{dayTasks.length - 3} more
+                {dayTasks.length > (isMobile ? 2 : 3) && (
+                  <span className="text-[9px] sm:text-[10px] font-bold text-neutral-400 pl-0.5">
+                    +{dayTasks.length - (isMobile ? 2 : 3)} more
                   </span>
                 )}
               </div>

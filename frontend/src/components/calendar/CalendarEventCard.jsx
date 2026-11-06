@@ -11,6 +11,7 @@ import {
 const CalendarEventCard = ({
   layoutItem,
   decryptedTitle,
+  isMobile = false,
   onTaskMove,
   onTaskResize,
   onTaskToggle,
@@ -127,7 +128,7 @@ const CalendarEventCard = ({
           : 'bg-[#242426]/95 hover:bg-[#2C2C2E] cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md'
       } ${isResizing ? 'ring-2 ring-blue-500/80 shadow-lg' : ''}`}
     >
-      <div className={`p-1.5 flex flex-col min-h-0 flex-1 ${isShort ? 'justify-center' : ''}`}>
+      <div className={`${isMobile ? 'p-2' : 'p-1.5'} flex flex-col min-h-0 flex-1 ${isShort ? 'justify-center' : ''}`}>
         <div className="flex items-center gap-1.5 min-w-0">
           <button
             type="button"
@@ -135,16 +136,16 @@ const CalendarEventCard = ({
               e.stopPropagation();
               onTaskToggle && onTaskToggle(task);
             }}
-            className="text-neutral-400 hover:text-white shrink-0 transition-colors"
+            className="text-neutral-400 hover:text-white shrink-0 transition-colors cursor-pointer"
           >
             {isCompleted ? (
-              <CheckCircle2 size={13} className="text-emerald-400" />
+              <CheckCircle2 size={isMobile ? 15 : 13} className="text-emerald-400" />
             ) : (
-              <Circle size={13} />
+              <Circle size={isMobile ? 15 : 13} />
             )}
           </button>
           <span
-            className={`text-[12px] font-semibold truncate leading-tight ${
+            className={`${isMobile ? 'text-[13px]' : 'text-[12px]'} font-semibold truncate leading-tight ${
               isCompleted ? 'line-through text-neutral-300 decoration-neutral-500/80' : 'text-white/95'
             }`}
           >
@@ -153,8 +154,8 @@ const CalendarEventCard = ({
         </div>
 
         {!isShort && (
-          <div className="flex items-center gap-1 text-[10px] text-neutral-400 mt-0.5 truncate font-medium">
-            <Clock size={10} className="shrink-0" />
+          <div className={`flex items-center gap-1 ${isMobile ? 'text-[11px]' : 'text-[10px]'} text-neutral-400 mt-0.5 truncate font-medium`}>
+            <Clock size={isMobile ? 11 : 10} className="shrink-0" />
             <span>{timeBadge}</span>
           </div>
         )}

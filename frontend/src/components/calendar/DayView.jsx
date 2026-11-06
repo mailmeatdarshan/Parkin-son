@@ -17,6 +17,7 @@ const DayView = ({
   currentDate,
   tasks,
   decryptedTitles,
+  isMobile = false,
   onTaskMove,
   onTaskResize,
   onTaskToggle,
@@ -128,7 +129,7 @@ const DayView = ({
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-[14px] sm:text-[16px] font-bold text-white truncate">{formattedHeader}</span>
           {isToday && (
-            <span className="bg-red-500/20 text-[#FF3B30] text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border border-red-500/30 shrink-0">
+            <span className="bg-[#3B82F6]/20 text-[#3B82F6] text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border border-[#3B82F6]/30 shrink-0">
               Today
             </span>
           )}
@@ -152,19 +153,19 @@ const DayView = ({
                 style={{ height: `${HOUR_HEIGHT}px` }}
                 className="relative border-b border-[#38383A]/30 flex items-start justify-end pr-3"
               >
-                <span className="text-[11px] font-medium text-neutral-400 -mt-2 bg-[#1E1E1E] px-1">
+                <span className="text-[11px] sm:text-[12px] font-medium text-neutral-400 -mt-2 bg-[#1E1E1E] px-1">
                   {String(h).padStart(2, '0')}:00
                 </span>
               </div>
             ))}
 
-            {/* Current Time in Red (No line across grid) */}
+            {/* Current Time in Theme Blue */}
             {isToday && (
               <div
                 style={{ top: `${currentTop}px` }}
                 className="absolute right-1 -translate-y-1/2 z-20 pointer-events-none flex items-center justify-end"
               >
-                <span className="text-[11px] font-bold text-[#FF3B30] bg-[#1E1E1E] px-1 rounded shadow-sm border border-[#FF3B30]/30">
+                <span className="text-[11px] font-bold text-[#3B82F6] bg-[#1E1E1E] px-1 rounded shadow-sm border border-[#3B82F6]/30">
                   {currentTimeString}
                 </span>
               </div>
@@ -223,6 +224,7 @@ const DayView = ({
                 key={item.event._id}
                 layoutItem={item}
                 decryptedTitle={decryptedTitles?.[item.event._id]}
+                isMobile={isMobile}
                 onTaskMove={onTaskMove}
                 onTaskResize={onTaskResize}
                 onTaskToggle={onTaskToggle}

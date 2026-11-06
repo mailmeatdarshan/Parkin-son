@@ -5,6 +5,9 @@ import {
   ChevronRight,
   Plus,
   SlidersHorizontal,
+  LayoutGrid,
+  MoreHorizontal,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
 import {
   CalendarPlus,
@@ -61,10 +64,35 @@ const MONTH_NAMES = [
 const CalendarContainer = () => {
   const { isLocked, encryptData, decryptData } = useCrypto();
   const { calendarYearHeatmap } = useSettings();
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 768 : false));
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [view, setView] = useState('week'); // 'day' | 'week' | 'month' | 'year'
-  const [isArrangeOpen, setIsArrangeOpen] = useState(true);
+  const [view, setView] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768 ? 'month' : 'week'));
+  const [isArrangeOpen, setIsArrangeOpen] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768 ? false : true));
+  const [showMobileOptions, setShowMobileOptions] = useState(false);
+  const mobileOptionsRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (mobileOptionsRef.current && !mobileOptionsRef.current.contains(e.target)) {
+        setShowMobileOptions(false);
+      }
+    };
+    if (showMobileOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showMobileOptions]);
 
   const [tasks, setTasks] = useState([]);
   const [unscheduledTasks, setUnscheduledTasks] = useState([]);
@@ -574,7 +602,7 @@ const CalendarContainer = () => {
   // Format Header Title
   const headerTitle = useMemo(() => {
     if (view === 'life') {
-      return 'Life in Weeks';
+      return 'Life Calendar';
     }
     const month = MONTH_NAMES[currentDate.getMonth()];
     const year = currentDate.getFullYear();
@@ -584,6 +612,17 @@ const CalendarContainer = () => {
     if (view === 'year') {
       return `${year}`;
     }
+    if (view === 'week') {
+      const weekDays = getWeekDays(currentDate);
+      const start = weekDays[0];
+      const end = weekDays[6];
+      const startMonth = MONTH_NAMES[start.getMonth()].slice(0, 3);
+      const endMonth = MONTH_NAMES[end.getMonth()].slice(0, 3);
+      if (start.getMonth() === end.getMonth()) {
+        return `${startMonth} ${start.getDate()} - ${end.getDate()}, ${year}`;
+      }
+      return `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}`;
+    }
     return `${month} ${year}`;
   }, [currentDate, view]);
 
@@ -592,16 +631,134 @@ const CalendarContainer = () => {
       {/* Sidebar Navigation */}
       <Sidebar activePage="Calendar" />
 
-      {/* Top Navigation Toolbar */}
-      <div className="flex flex-col md:flex-row items-center justify-between pl-14 sm:pl-16 md:pl-[100px] pr-3 sm:pr-6 pt-3 sm:pt-4 md:pt-5 pb-3 md:pb-4 shrink-0 bg-[#1E1E1E] border-b border-[#38383A] z-20 gap-2.5 md:gap-0">
+      {/* MOBILE TOOLBAR (Visible on small screens < 768px) */}
+      <div className="md:hidden flex items-center justify-between px-3 pt-3 pb-2.5 shrink-0 bg-[#1A1A1C] border-b border-[#38383A] z-20 select-none">
+        {/* Left: Space for floating sidebar toggle (w-11) + Grid button (toggles Month <-> Year) */}
+        <div className="flex items-center gap-2 pl-12">
+          <button
+            onClick={() => setView(view === 'year' ? 'month' : 'year')}
+            className={`p-2 rounded-xl border transition-all cursor-pointer ${
+              view === 'year'
+                ? 'bg-blue-500/20 text-[#0A84FF] border-blue-500/40 shadow-sm'
+                : 'bg-white/[0.04] text-neutral-300 border-white/[0.08] hover:bg-white/[0.08]'
+            }`}
+            title={view === 'year' ? 'Switch to Month View' : 'Switch to Year View'}
+          >
+            <LayoutGrid size={18} />
+          </button>
+        </div>
+
+        {/* Center: Dynamic title with Prev/Next Controls */}
+        <div className="flex items-center gap-1">
+          {view !== 'life' && (
+            <button
+              onClick={() => handleNavigate(-1)}
+              className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              title="Previous"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+          <h1 className="text-[15px] font-bold tracking-tight text-white px-1 text-center truncate max-w-[150px]">
+            {headerTitle}
+          </h1>
+          {view !== 'life' && (
+            <button
+              onClick={() => handleNavigate(1)}
+              className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              title="Next"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* Right: Today Pill + ... Menu */}
+        <div className="flex items-center gap-1.5" ref={mobileOptionsRef}>
+          <button
+            onClick={handleToday}
+            className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-[11px] font-bold text-white hover:bg-white/[0.1] active:scale-95 transition-all cursor-pointer"
+          >
+            Today
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => setShowMobileOptions((prev) => !prev)}
+              className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+                showMobileOptions
+                  ? 'bg-white/20 text-white border-white/30'
+                  : 'bg-white/[0.04] text-neutral-400 hover:text-white border-white/[0.08]'
+              }`}
+              title="View Options"
+            >
+              <MoreHorizontal size={18} />
+            </button>
+
+            {showMobileOptions && (
+              <div className="absolute right-0 top-full mt-2 w-48 py-1.5 bg-[#1C1C1E] border border-white/[0.12] rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-md">
+                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  Views
+                </div>
+                {[
+                  { id: 'month', label: 'Month View' },
+                  { id: 'year', label: 'Year View' },
+                  { id: 'week', label: 'Week View' },
+                  { id: 'day', label: 'Day View' },
+                  { id: 'life', label: 'Life Calendar' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setView(item.id);
+                      setShowMobileOptions(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-2 text-[12px] font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                      view === item.id
+                        ? 'bg-blue-500/20 text-[#0A84FF]'
+                        : 'text-neutral-300 hover:bg-white/[0.06] hover:text-white'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {view === item.id && <Check size={14} weight="bold" />}
+                  </button>
+                ))}
+
+                <div className="my-1 border-t border-white/[0.08]" />
+
+                <button
+                  onClick={() => {
+                    setIsArrangeOpen((prev) => !prev);
+                    setShowMobileOptions(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-[12px] font-semibold flex items-center justify-between text-neutral-300 hover:bg-white/[0.06] hover:text-white transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <SlidersHorizontal size={13} />
+                    Arrange Tasks
+                  </span>
+                  {unscheduledTasks.length > 0 && (
+                    <span className="w-4 h-4 rounded-full bg-[#0A84FF] text-white text-[10px] flex items-center justify-center font-bold">
+                      {unscheduledTasks.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* DESKTOP TOOLBAR (Hidden on mobile < 768px) */}
+      <div className="hidden md:flex flex-row items-center justify-between pl-14 sm:pl-16 md:pl-[100px] pr-3 sm:pr-6 pt-3 sm:pt-4 md:pt-5 pb-3 md:pb-4 shrink-0 bg-[#1E1E1E] border-b border-[#38383A] z-20 gap-0">
         {/* Left: Navigation Controls & Title */}
-        <div className="flex items-center justify-between md:justify-start gap-2 sm:gap-3 w-full md:w-auto">
-          <h1 className="text-[17px] sm:text-[22px] md:text-[28px] font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+        <div className="flex items-center justify-start gap-2 sm:gap-3 w-auto">
+          <h1 className="text-[22px] md:text-[28px] font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
             {headerTitle}
           </h1>
 
           {view !== 'life' && (
-            <div className="flex items-center gap-1 ml-auto sm:ml-2 shrink-0">
+            <div className="flex items-center gap-1 ml-2 shrink-0">
               <button
                 onClick={() => handleNavigate(-1)}
                 className="p-1 rounded-full hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors cursor-pointer"
@@ -627,7 +784,7 @@ const CalendarContainer = () => {
         </div>
 
         {/* Right: View Switcher, Arrange Drawer Toggle, Add Button */}
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end overflow-x-auto no-scrollbar py-0.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 w-auto justify-end overflow-x-auto no-scrollbar py-0.5">
           {/* Segmented View Switcher: Day | Week | Month | Year | Life */}
           <div className="flex bg-[#121212] rounded-full p-0.5 sm:p-1 border border-white/[0.06] shadow-inner shrink-0">
             <button
@@ -726,6 +883,7 @@ const CalendarContainer = () => {
               currentDate={currentDate}
               tasks={tasks}
               decryptedTitles={decryptedTitles}
+              isMobile={isMobile}
               onTaskMove={handleTaskMove}
               onTaskResize={handleTaskResize}
               onTaskToggle={handleTaskToggle}
@@ -743,6 +901,7 @@ const CalendarContainer = () => {
               currentDate={currentDate}
               tasks={tasks}
               decryptedTitles={decryptedTitles}
+              isMobile={isMobile}
               onTaskMove={handleTaskMove}
               onTaskResize={handleTaskResize}
               onTaskToggle={handleTaskToggle}
@@ -757,10 +916,13 @@ const CalendarContainer = () => {
               selectedDate={selectedDate}
               tasks={tasks}
               decryptedTitles={decryptedTitles}
+              isMobile={isMobile}
               onTaskMove={handleTaskMove}
               onDayClick={(dayDate) => {
                 setSelectedDate(dayDate);
-                setIsArrangeOpen(true);
+                if (!isMobile) {
+                  setIsArrangeOpen(true);
+                }
               }}
               onDayDoubleClick={(dayDate) => {
                 setSelectedDate(dayDate);
@@ -778,6 +940,7 @@ const CalendarContainer = () => {
               tasks={tasks}
               heatmapEnabled={calendarYearHeatmap}
               heatmapData={heatmapData}
+              isMobile={isMobile}
               onTaskMove={handleTaskMove}
               onSelectMonth={(monthIndex) => {
                 setCurrentDate(new Date(currentDate.getFullYear(), monthIndex, 1));
@@ -785,7 +948,12 @@ const CalendarContainer = () => {
               }}
               onDayClick={(dayDate) => {
                 setSelectedDate(dayDate);
-                setIsArrangeOpen(true);
+                if (isMobile) {
+                  setCurrentDate(dayDate);
+                  setView('month');
+                } else {
+                  setIsArrangeOpen(true);
+                }
               }}
               onDayDoubleClick={(dayDate) => {
                 setSelectedDate(dayDate);
@@ -799,7 +967,7 @@ const CalendarContainer = () => {
           )}
 
           {view === 'life' && (
-            <LifeView />
+            <LifeView isMobile={isMobile} />
           )}
         </div>
 
@@ -1022,6 +1190,17 @@ const CalendarContainer = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Mobile Floating Action Button (Quick Add Task) */}
+      {isMobile && view !== 'life' && (
+        <button
+          onClick={() => handleOpenAddModal(selectedDate || currentDate)}
+          className="md:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[#3B82F6] hover:bg-blue-600 active:scale-95 text-white flex items-center justify-center shadow-[0_8px_28px_rgba(59,130,246,0.55)] z-40 transition-all cursor-pointer border border-blue-400/40"
+          title="Add Task"
+        >
+          <Plus size={24} strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 };

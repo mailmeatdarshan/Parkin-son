@@ -34,6 +34,7 @@ const YearView = ({
   tasks = [],
   heatmapEnabled = false,
   heatmapData = [],
+  isMobile = false,
   onSelectMonth,
   onDayClick,
   onDayDoubleClick,
@@ -241,6 +242,65 @@ const YearView = ({
 
     const cells = [];
 
+    // MOBILE COMPACT 7-COLUMN MONTH (Matching reference mockup)
+    if (isMobile) {
+      // Previous month days
+      for (let i = firstDay - 1; i >= 0; i--) {
+        cells.push(
+          <div key={`prev-${i}`} className="flex justify-center items-center pointer-events-none h-4">
+            <span className="text-[7.5px] font-medium text-neutral-600">
+              {prevMonthDays - i}
+            </span>
+          </div>
+        );
+      }
+
+      // Current month days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = isCurrentMonth && day === currentDayNum;
+        const cellDate = new Date(year, monthIndex, day);
+        const activity = getDayActivity(cellDate);
+        const hasEvents = activity.taskCount > 0;
+
+        cells.push(
+          <div
+            key={`curr-${day}`}
+            className="flex justify-center items-center h-4 relative cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onDayClick) onDayClick(cellDate);
+            }}
+          >
+            <div
+              className={`flex items-center justify-center transition-all ${
+                isToday
+                  ? 'w-3.5 h-3.5 rounded-full bg-[#3B82F6] text-white font-bold text-[7.5px] shadow-[0_0_6px_rgba(59,130,246,0.6)]'
+                  : hasEvents
+                  ? 'w-3.5 h-3.5 rounded-full bg-white/10 text-white font-semibold text-[7.5px]'
+                  : 'text-neutral-300 font-medium text-[7.5px]'
+              }`}
+            >
+              {day}
+            </div>
+          </div>
+        );
+      }
+
+      // Next month padding days to fill 42 cells (6 rows)
+      const remainingCells = 42 - cells.length;
+      for (let i = 1; i <= remainingCells; i++) {
+        cells.push(
+          <div key={`next-${i}`} className="flex justify-center items-center pointer-events-none h-4">
+            <span className="text-[7.5px] font-medium text-neutral-600">
+              {i}
+            </span>
+          </div>
+        );
+      }
+
+      return cells;
+    }
+
     // HEATMAP MODE: Tightly packed contiguous mosaic matching reference image
     if (heatmapEnabled) {
       // Empty placeholder cells before 1st of month (invisible spacer)
@@ -424,9 +484,13 @@ const YearView = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-4 md:gap-6 min-h-0 pb-12 bg-[#1E1E1E] select-none">
-      {/* Activity Heatmap Header Legend when enabled */}
-      {heatmapEnabled && (
+    <div
+      className={`flex-1 overflow-y-auto ${
+        isMobile ? 'p-2 pb-24 bg-[#121214]' : 'p-4 md:p-8 bg-[#1E1E1E]'
+      } flex flex-col gap-3 md:gap-6 min-h-0 select-none`}
+    >
+      {/* Activity Heatmap Header Legend when enabled (Desktop only) */}
+      {!isMobile && heatmapEnabled && (
         <div className="p-3.5 sm:p-4 rounded-2xl bg-[#141416] border border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-[#5278E8] shadow-[0_0_10px_rgba(82,120,232,0.9)] animate-pulse" />
@@ -456,46 +520,54 @@ const YearView = ({
       )}
 
       {/* 12 Months Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      <div
+        className={`grid ${
+          isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'
+        }`}
+      >
         {MONTH_NAMES.map((month, idx) => {
           const isHoveredMonth = hoveredMonthIndex === idx;
+          const isCurrentMonth = today.getFullYear() === year && today.getMonth() === idx;
 
           return (
             <div
               key={month}
+              onClick={() => onSelectMonth && onSelectMonth(idx)}
               onDragOver={(e) => handleMonthDragOver(e, idx)}
               onDragLeave={(e) => handleMonthDragLeave(e, idx)}
               onDrop={(e) => handleMonthDrop(e, idx)}
-              className={`flex flex-col group bg-[#1A1A1C]/50 hover:bg-[#1A1A1C]/90 border border-white/[0.04] hover:border-white/[0.1] p-3 md:p-4 rounded-[16px] md:rounded-[20px] transition-all duration-200 shadow-sm relative ${
-                isHoveredMonth ? 'ring-2 ring-blue-500/80 bg-blue-500/15 shadow-xl' : ''
-              }`}
+              className={`flex flex-col group transition-all duration-200 shadow-sm relative cursor-pointer ${
+                isMobile
+                  ? 'bg-[#18181B]/80 hover:bg-[#1E1E22] border border-white/[0.06] p-1.5 sm:p-2 rounded-xl active:scale-[0.98]'
+                  : 'bg-[#1A1A1C]/50 hover:bg-[#1A1A1C]/90 border border-white/[0.04] hover:border-white/[0.1] p-3 md:p-4 rounded-[16px] md:rounded-[20px]'
+              } ${isHoveredMonth ? 'ring-2 ring-blue-500/80 bg-blue-500/15 shadow-xl' : ''}`}
             >
               {/* Month Header */}
-              <div className="flex items-center justify-between mb-2 md:mb-3 pl-1">
-                <button
-                  type="button"
-                  onClick={() => onSelectMonth && onSelectMonth(idx)}
-                  className={`font-extrabold text-[15px] md:text-[18px] transition-colors drop-shadow-sm flex items-center gap-1 cursor-pointer ${
-                    heatmapEnabled
-                      ? 'text-white hover:text-blue-400'
-                      : 'text-[#FF3B30] hover:text-[#FF453A]'
+              <div className={`flex items-center justify-between ${isMobile ? 'mb-1 pl-0.5' : 'mb-2 md:mb-3 pl-1'}`}>
+                <span
+                  className={`font-extrabold transition-colors drop-shadow-sm flex items-center gap-1 ${
+                    isMobile
+                      ? isCurrentMonth
+                        ? 'text-[#3B82F6] text-[11px] sm:text-[12px]'
+                        : 'text-white text-[11px] sm:text-[12px]'
+                      : heatmapEnabled
+                      ? 'text-white hover:text-blue-400 text-[15px] md:text-[18px]'
+                      : 'text-[#FF3B30] hover:text-[#FF453A] text-[15px] md:text-[18px]'
                   }`}
                   title={`Open ${month} in Month View`}
                 >
-                  {heatmapEnabled ? month.slice(0, 3) : month}
-                </button>
+                  {isMobile ? month.slice(0, 3) : heatmapEnabled ? month.slice(0, 3) : month}
+                </span>
 
-                {!heatmapEnabled && (
+                {!isMobile && !heatmapEnabled && (
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const isCurrentMonth =
+                        const isThisMonth =
                           today.getFullYear() === year && today.getMonth() === idx;
-                        const targetDate = isCurrentMonth
-                          ? today
-                          : new Date(year, idx, 1);
+                        const targetDate = isThisMonth ? today : new Date(year, idx, 1);
                         if (onQuickAddTask) {
                           onQuickAddTask(targetDate);
                         }
@@ -517,13 +589,15 @@ const YearView = ({
                 )}
               </div>
 
-              {/* Days of Week Header - hidden in heatmap mode to match tight mosaic aesthetic */}
-              {!heatmapEnabled && (
-                <div className="grid grid-cols-7 gap-1 mb-1">
+              {/* Days of Week Header */}
+              {(!heatmapEnabled || isMobile) && (
+                <div className={`grid grid-cols-7 ${isMobile ? 'gap-0 mb-0.5' : 'gap-1 mb-1'}`}>
                   {DAYS_HEADER.map((d, i) => (
                     <div
                       key={`header-${i}`}
-                      className="text-center text-[9px] md:text-[10px] font-bold text-neutral-500"
+                      className={`text-center font-bold text-neutral-500 ${
+                        isMobile ? 'text-[7px]' : 'text-[9px] md:text-[10px]'
+                      }`}
                     >
                       {d}
                     </div>
@@ -534,7 +608,7 @@ const YearView = ({
               {/* Days Matrix */}
               <div
                 className={`grid grid-cols-7 ${
-                  heatmapEnabled ? 'gap-[1.5px] sm:gap-[2px]' : 'gap-1'
+                  isMobile ? 'gap-0' : heatmapEnabled ? 'gap-[1.5px] sm:gap-[2px]' : 'gap-1'
                 }`}
               >
                 {renderMiniMonth(idx)}

@@ -45,7 +45,7 @@ const CATEGORIES = [
   { id: 'travel', label: 'Travel', color: '#06B6D4', bg: 'rgba(6, 182, 212, 0.15)', border: 'rgba(6, 182, 212, 0.4)', icon: AirplaneTilt },
 ];
 
-const LifeView = ({ onNavigateToSettings }) => {
+const LifeView = ({ onNavigateToSettings, isMobile = false }) => {
   // DOB & Lifespan state
   const [dob, setDob] = useState(() => {
     return typeof window !== 'undefined' ? (localStorage.getItem('app_user_dob') || '') : '';
@@ -65,9 +65,16 @@ const LifeView = ({ onNavigateToSettings }) => {
     }
   });
 
-  // View Scope: 'full' (all 90 years, fits on screen) | 'era' (current life era, e.g. 20s/30s) | 'decades' (10-year chunks)
-  const [viewScope, setViewScope] = useState('full');
+  // View Scope: 'full' (all 90 years) | 'era' (current life era, e.g. 20s/30s) | 'decades' (10-year chunks)
+  // On mobile default to 'era' for touch-friendly readable week tiles
+  const [viewScope, setViewScope] = useState(() => (isMobile ? 'era' : 'full'));
   const [selectedDecadeIndex, setSelectedDecadeIndex] = useState(2); // default decade (e.g. 20s)
+
+  useEffect(() => {
+    if (isMobile) {
+      setViewScope('era');
+    }
+  }, [isMobile]);
 
   // Setup / Edit Modal State
   const [showDobModal, setShowDobModal] = useState(false);
@@ -348,10 +355,10 @@ const LifeView = ({ onNavigateToSettings }) => {
 
   return (
     <div className="h-full w-full flex flex-col justify-between bg-[#08080A] text-white overflow-y-auto lg:overflow-hidden select-none p-2 sm:p-3 md:px-6 md:py-3.5 relative">
-      {/* 1. MINIMALIST MEMENTO MORI HUD HEADER (Height: ~42px) */}
-      <div className="flex items-center justify-between gap-3 shrink-0 pb-2.5 border-b border-white/[0.06] z-10">
+      {/* 1. MINIMALIST MEMENTO MORI HUD HEADER */}
+      <div className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between gap-3'} shrink-0 pb-2.5 border-b border-white/[0.06] z-10`}>
         {/* Left: Matrix Title & Live Week Beacon */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between w-full md:w-auto gap-3">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#5278E8] shadow-[0_0_10px_#5278E8] animate-pulse" />
             <span className="font-mono font-black text-[12px] md:text-[13px] tracking-[0.18em] uppercase text-white">
@@ -359,14 +366,30 @@ const LifeView = ({ onNavigateToSettings }) => {
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono text-zinc-300">
-            <span className="text-[#5278E8] font-bold">Week {lifeStats.weeksLived}</span>
-            <span className="text-zinc-600">/</span>
-            <span>{lifeStats.totalWeeks}</span>
-          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] sm:text-[11px] font-mono text-zinc-300">
+              <span className="text-[#5278E8] font-bold">Wk {lifeStats.weeksLived}</span>
+              <span className="text-zinc-600">/</span>
+              <span>{lifeStats.totalWeeks}</span>
+            </div>
 
-          <div className="hidden md:flex items-center text-[11px] font-mono text-zinc-400">
-            <span>Age {lifeStats.currentAgeExact} yrs</span>
+            <div className="hidden md:flex items-center text-[11px] font-mono text-zinc-400">
+              <span>Age {lifeStats.currentAgeExact} yrs</span>
+            </div>
+
+            {isMobile && (
+              <button
+                onClick={() => {
+                  setTempDob(dob);
+                  setTempLifespan(lifespan);
+                  setShowDobModal(true);
+                }}
+                className="p-1 rounded-md bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white"
+                title="Edit Date of Birth"
+              >
+                <PencilSimple size={12} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -385,23 +408,12 @@ const LifeView = ({ onNavigateToSettings }) => {
         </div>
 
         {/* Right: View Scope Switcher & Config Button */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full md:w-auto">
           {/* Scope Segmented Control */}
-          <div className="flex items-center p-0.5 rounded-lg bg-black/60 border border-white/[0.08]">
-            <button
-              onClick={() => setViewScope('full')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold transition-all cursor-pointer ${
-                viewScope === 'full'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/20'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-              title="View all 90 years at a glance (zero scrolling)"
-            >
-              Full (90y)
-            </button>
+          <div className="flex items-center p-0.5 rounded-lg bg-black/60 border border-white/[0.08] w-full sm:w-auto justify-between sm:justify-start">
             <button
               onClick={() => setViewScope('era')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono font-semibold transition-all cursor-pointer ${
                 viewScope === 'era'
                   ? 'bg-white/15 text-white shadow-sm border border-white/20'
                   : 'text-zinc-400 hover:text-white'
@@ -411,8 +423,19 @@ const LifeView = ({ onNavigateToSettings }) => {
               Current Era
             </button>
             <button
+              onClick={() => setViewScope('full')}
+              className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono font-semibold transition-all cursor-pointer ${
+                viewScope === 'full'
+                  ? 'bg-white/15 text-white shadow-sm border border-white/20'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+              title="View all 90 years at a glance (zero scrolling)"
+            >
+              Full (90y)
+            </button>
+            <button
               onClick={() => setViewScope('decades')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono font-semibold transition-all cursor-pointer ${
                 viewScope === 'decades'
                   ? 'bg-white/15 text-white shadow-sm border border-white/20'
                   : 'text-zinc-400 hover:text-white'
@@ -428,7 +451,7 @@ const LifeView = ({ onNavigateToSettings }) => {
             <select
               value={selectedDecadeIndex}
               onChange={(e) => setSelectedDecadeIndex(Number(e.target.value))}
-              className="bg-[#121318] border border-white/[0.1] text-white text-[11px] font-mono rounded-lg px-2 py-1 outline-none cursor-pointer"
+              className="bg-[#121318] border border-white/[0.1] text-white text-[10px] sm:text-[11px] font-mono rounded-lg px-2 py-1 outline-none cursor-pointer"
             >
               {Array.from({ length: 9 }).map((_, i) => (
                 <option key={i} value={i}>
@@ -438,32 +461,34 @@ const LifeView = ({ onNavigateToSettings }) => {
             </select>
           )}
 
-          {/* Edit DOB pill */}
-          <button
-            onClick={() => {
-              setTempDob(dob);
-              setTempLifespan(lifespan);
-              setShowDobModal(true);
-            }}
-            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer"
-            title="Edit Date of Birth & Lifespan"
-          >
-            <PencilSimple size={13} />
-          </button>
+          {/* Edit DOB pill (desktop) */}
+          {!isMobile && (
+            <button
+              onClick={() => {
+                setTempDob(dob);
+                setTempLifespan(lifespan);
+                setShowDobModal(true);
+              }}
+              className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+              title="Edit Date of Birth & Lifespan"
+            >
+              <PencilSimple size={13} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 2. THE CHRONO MATRIX (FITS 100% IN VIEWPORT WITHOUT SCROLLING) */}
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative my-1 w-full overflow-x-auto no-scrollbar">
-        <div className="flex flex-col items-center justify-center max-h-full min-w-[480px] sm:min-w-0">
+      {/* 2. THE CHRONO MATRIX */}
+      <div className="flex-1 flex flex-col items-center justify-start sm:justify-center min-h-0 relative my-1 w-full overflow-x-auto overflow-y-auto no-scrollbar">
+        <div className={`flex flex-col items-center justify-center max-h-full ${isMobile ? 'min-w-[580px] px-2 py-2' : 'min-w-[480px] sm:min-w-0'}`}>
           {/* Week Columns Ruler (Weeks 1 to 52) */}
           <div className="flex items-center pl-10 md:pl-12 mb-1.5">
             <div
               className="flex justify-between text-[9px] md:text-[10px] font-mono text-zinc-500 font-bold tracking-wider"
               style={{
                 width: viewScope === 'full'
-                  ? 'clamp(440px, 62vw, 680px)'
-                  : 'clamp(520px, 70vw, 840px)'
+                  ? (isMobile ? '500px' : 'clamp(440px, 62vw, 680px)')
+                  : (isMobile ? '560px' : 'clamp(520px, 70vw, 840px)')
               }}
             >
               <span>W1 (JAN)</span>
@@ -486,15 +511,15 @@ const LifeView = ({ onNavigateToSettings }) => {
 
               // Tile dimensions calculated so 90 rows fit inside ~520px height perfectly
               const tileHeightClass = viewScope === 'full'
-                ? 'h-[4.5px] sm:h-[5.5px] md:h-[6px]'
+                ? (isMobile ? 'h-[6px]' : 'h-[4.5px] sm:h-[5.5px] md:h-[6px]')
                 : viewScope === 'era'
-                ? 'h-[16px] sm:h-[18px]'
+                ? (isMobile ? 'h-[16px]' : 'h-[16px] sm:h-[18px]')
                 : 'h-[22px] sm:h-[26px]';
 
               const tileWidthClass = viewScope === 'full'
-                ? 'w-[7px] sm:w-[9px] md:w-[11px]'
+                ? (isMobile ? 'w-[8px]' : 'w-[7px] sm:w-[9px] md:w-[11px]')
                 : viewScope === 'era'
-                ? 'w-[10px] sm:w-[12px] md:w-[14px]'
+                ? (isMobile ? 'w-[9.5px]' : 'w-[10px] sm:w-[12px] md:w-[14px]')
                 : 'w-[12px] sm:w-[14px] md:w-[16px]';
 
               const tileRadius = viewScope === 'full' ? 'rounded-[1px]' : 'rounded-[2px]';
